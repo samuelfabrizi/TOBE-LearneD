@@ -1,9 +1,10 @@
 # .coveragerc to control coverage.py
 [run]
 branch = True
-omit =  */utils/
-        */__main__*
-        */__init__.py
+omit =
+    */utils/*
+    */__main__*
+    */__init__.py
 source = ./decentralized_smart_grid_ml
 
 [report]
