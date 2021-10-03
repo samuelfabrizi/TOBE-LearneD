@@ -5,7 +5,7 @@ import numpy as np
 
 from decentralized_smart_grid_ml.exceptions import IncorrectExtensionFileError
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import save_fl_model, load_fl_model, \
-    save_fl_model_config, load_fl_model_config, save_fl_model_weights
+    save_fl_model_config, load_fl_model_config, save_fl_model_weights, load_fl_model_weights
 
 
 class TestModelsReaderWriter(unittest.TestCase):
@@ -101,7 +101,28 @@ class TestModelsReaderWriter(unittest.TestCase):
             with self.assertRaises(IncorrectExtensionFileError):
                 save_fl_model_weights(model_mock, model_weights_path)
 
+    @patch('json.load')
+    def test_load_fl_model_weights(self, json_load_mock):
+        m_o = mock_open()
+        model_weights_path = "/path/to/model_weights.json"
+        weights_json = [
+            [1, 2, 3, 4],
+            [1, 2]
+        ]
+        expected_model_weights = [
+            np.array([1, 2, 3, 4]),
+            np.array([1, 2]),
+        ]
+        json_load_mock.return_value = weights_json
+        with patch('decentralized_smart_grid_ml.federated_learning.models_reader_writer.open', m_o):
+            model_weights = load_fl_model_weights(model_weights_path)
+            m_o.assert_called_with(model_weights_path, "r")
+            handle = m_o()
+            json_load_mock.assert_called_with(handle)
+            for expected_layer_weights, layer_weights in zip(expected_model_weights, model_weights):
+                np.testing.assert_array_equal(expected_layer_weights, layer_weights)
 
-    # YOU HAVE ONLY TO ADD THE TESTS FOR load_fl_model_weights
-
-
+    def test_load_fl_model_weights_no_json(self):
+        model_weights_path = "/path/to/model_weights.txt"
+        with self.assertRaises(IncorrectExtensionFileError):
+            load_fl_model_weights(model_weights_path)
