@@ -13,11 +13,17 @@ def _index_in_list(a_list, index):
 
 
 def weighted_average_aggregation(models_weights, alpha):
+    """
+    Computes the weighted average of the clients' weights according to a given probability vector
+    :param models_weights: weights of the clients' models
+    :param alpha: probability vector for the weighted average
+    :return: weighted average of weights
+    """
     if sum(alpha) != 1:
-        logger.error("The vector alpha is not valid ", alpha)
+        logger.error("The vector alpha is not valid %s", alpha)
         raise NotValidAlphaVectorError("Error in the alpha vector")
     if len(models_weights) != len(alpha):
-        logger.error("The number of weights (%d )and the vector alpha cardinality (%d) "
+        logger.error("The number of clients' weights (%d) and the vector alpha cardinality (%d) "
                      "does not correspond", len(models_weights), len(alpha))
         raise NotValidClientsModelsError("Error in the number of weights and/or alpha cardinality")
     logger.info("Start models' weights aggregation of %d clients", len(alpha))
