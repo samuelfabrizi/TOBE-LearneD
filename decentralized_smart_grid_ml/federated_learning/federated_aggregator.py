@@ -4,7 +4,7 @@ in the global one
 """
 from decentralized_smart_grid_ml.exceptions import NotValidClientsModelsError, \
     NotValidAlphaVectorError
-from decentralized_smart_grid_ml.utils.logging import create_logger
+from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
 
