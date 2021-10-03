@@ -27,15 +27,15 @@ def split_dataset_for_clients(dataset_path, n_clients, random_state=None, shuffl
     if n_clients <= 0:
         logger.error("The number of clients provided is not valid: %d is not > 0", n_clients)
         raise ValueError("The number of clients must be a positive integer")
-    df = pd.read_csv(dataset_path, )
+    df_dataset = pd.read_csv(dataset_path)
     if shuffle:
-        df = sk_shuffle(df, random_state=random_state)
-    n_samples = len(df)
+        df_dataset = sk_shuffle(df_dataset, random_state=random_state)
+    n_samples = len(df_dataset)
     chunk_size = int(n_samples / n_clients)
     clients_datasets = []
     for i in range(n_clients):
         if i == (n_clients - 1):
-            clients_datasets.append(df.iloc[i*chunk_size:])
+            clients_datasets.append(df_dataset.iloc[i*chunk_size:])
         else:
-            clients_datasets.append(df.iloc[chunk_size*i:chunk_size*(i+1)])
+            clients_datasets.append(df_dataset.iloc[chunk_size*i:chunk_size*(i+1)])
     return clients_datasets
