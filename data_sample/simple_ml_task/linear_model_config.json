@@ -1,0 +1,23 @@
+{
+ "class_name": "LinearModel",
+ "config": {
+  "name": "linear_model",
+  "trainable": true,
+  "dtype": "float32",
+  "units": 1,
+  "activation": "sigmoid",
+  "use_bias": true,
+  "kernel_initializer": {
+   "class_name": "Zeros",
+   "config": {}
+  },
+  "bias_initializer": {
+   "class_name": "Zeros",
+   "config": {}
+  },
+  "kernel_regularizer": null,
+  "bias_regularizer": null
+ },
+ "keras_version": "2.6.0",
+ "backend": "tensorflow"
+}

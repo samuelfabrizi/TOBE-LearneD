@@ -44,7 +44,7 @@ def save_fl_model_config(model, model_path):
     """
     if pathlib.Path(model_path).suffix != ".json":
         logger.error("The file path %s is not a json file", model_path)
-        raise IncorrectExtensionFileError()
+        raise IncorrectExtensionFileError("Error in the file extension, json is required")
     with open(model_path, "w") as file_write:
         model_json = json.loads(model.to_json())
         json.dump(model_json, file_write, indent=1)
@@ -59,7 +59,7 @@ def load_fl_model_config(model_path):
     """
     if pathlib.Path(model_path).suffix != ".json":
         logger.error("The file path %s is not a json file", model_path)
-        raise IncorrectExtensionFileError()
+        raise IncorrectExtensionFileError("Error in the file extension, json is required")
     with open(model_path, "r") as file_read:
         model_json = json.dumps(json.load(file_read))
     logger.info("Loaded model's config from  %s", model_path)
@@ -76,7 +76,7 @@ def save_fl_model_weights(model, model_weights_path):
     """
     if pathlib.Path(model_weights_path).suffix != ".json":
         logger.error("The file path %s is not a json file", model_weights_path)
-        raise IncorrectExtensionFileError()
+        raise IncorrectExtensionFileError("Error in the file extension, json is required")
     weights_model = model.get_weights()
     lists_weights_model = [layer_weights.tolist() for layer_weights in weights_model]
     with open(model_weights_path, "w") as file_write:
@@ -92,7 +92,7 @@ def load_fl_model_weights(model_weights_path):
     """
     if pathlib.Path(model_weights_path).suffix != ".json":
         logger.error("The file path %s is not a json file", model_weights_path)
-        raise IncorrectExtensionFileError()
+        raise IncorrectExtensionFileError("Error in the file extension, json is required")
     with open(model_weights_path, "r") as file_read:
         model_weights = json.load(file_read)
     logger.info("Loaded model's weights from %s", model_weights_path)
