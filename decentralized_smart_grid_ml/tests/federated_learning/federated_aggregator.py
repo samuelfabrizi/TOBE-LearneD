@@ -40,3 +40,17 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregated_weights = weighted_average_aggregation([w1, w2], alpha)
         for expected_layer_weights, layer_weights in zip(expected_aggregated_weights, aggregated_weights):
             np.testing.assert_array_equal(expected_layer_weights, layer_weights)
+
+    def test_weighted_average_aggregation_different_shapes(self):
+        # sum(alpha) = 1, ok
+        alpha = [0.5, 0.5]
+        w1 = [
+            np.array([1, 2, 3]),
+            np.array([4, 5]),
+        ]
+        w2 = [
+            np.array([3, 4]),    # different shape w.r.t w1[0]
+            np.array([6, 7]),
+        ]
+        with self.assertRaises(NotValidClientsModelsError):
+            weighted_average_aggregation([w1, w2], alpha)

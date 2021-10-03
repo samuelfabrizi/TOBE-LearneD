@@ -34,6 +34,16 @@ def weighted_average_aggregation(models_weights, alpha):
                 aggregated_layer_weights = local_layer_weights * alpha[idx_client]
                 aggregated_weights.append(aggregated_layer_weights)
             else:
+                if aggregated_weights[idx_layer].shape != local_layer_weights.shape:
+                    logger.error(
+                        "The shape of the layer %d, client %d "
+                        "does not correspond to the layer shape of the global model: %s != %s",
+                        idx_layer,
+                        idx_client,
+                        local_layer_weights.shape,
+                        aggregated_weights[idx_layer].shape
+                    )
+                    raise NotValidClientsModelsError
                 aggregated_weights[idx_layer] = \
                     aggregated_weights[idx_layer] + \
                     local_layer_weights * alpha[idx_client]
