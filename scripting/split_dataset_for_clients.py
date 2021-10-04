@@ -1,6 +1,7 @@
 """
-This script is a simple utility to split a given dataset in different datasets according to the number
-of clients
+This script is a simple utility to split a given dataset so that it is possible to simulate the framework.
+First of all, it extracts the test set for the validator. Then, it splits the remaining dataset according
+to the number of clients.
 """
 import argparse
 import os
@@ -21,6 +22,14 @@ if __name__ == '__main__':
         type=str,
         help='The file system path to the ML dataset to split',
         required=True
+    )
+    parser.add_argument(
+        '--test_size',
+        dest='test_size',
+        metavar='test_size',
+        type=float,
+        help='The size of the test set, it has to be a float value between 0 and 1.0',
+        default=0.2
     )
     parser.add_argument(
         '--n_clients',
