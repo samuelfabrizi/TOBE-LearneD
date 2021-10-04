@@ -86,4 +86,5 @@ if __name__ == '__main__':
         save_fl_model_weights(local_model, model_weights_path)
         fl_rounds_completed[idx_round] = history
         logger.info("Client %d: end FL round %d", args.client_id, idx_round)
-
+    for round_res in fl_rounds_completed:
+        assert round_res is not None
