@@ -3,10 +3,11 @@ This script is a simple example for the local federated training in the dummy ML
 """
 
 import argparse
+import os
 
 import pandas as pd
 
-from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -49,8 +50,23 @@ if __name__ == '__main__':
         help='The file path to local_dataset_path',
         required=True
     )
+    # TODO: this argument has to be removed when we implemented the communication between
+    #       validator and clients
+    parser.add_argument(
+        '--client_directory_path',
+        dest='client_directory_path',
+        metavar='client_directory_path',
+        type=str,
+        help='The path to the client directory',
+        required=True
+    )
 
     args = parser.parse_args()
+
+    model_weights_path = os.path.join(
+        args.client_directory_path,
+        "weights_" + str(args.client_id) + ".json"
+    )
     logger.info("Starting client %d federated learning", args.client_id)
 
     local_dataset = pd.read_csv(args.local_dataset_path)
@@ -67,12 +83,8 @@ if __name__ == '__main__':
         local_model = load_fl_model(args.global_model_path)
         history = local_model.fit(x, y, epochs=EPOCHS, shuffle=True)
         # TODO: send the local model's weights at the end of the FL round
-        logger.debug(
-            "Client %d, round %d, weights: %s",
-            args.client_id,
-            idx_round,
-            local_model.get_weights()
-        )
+        save_fl_model_weights(local_model, model_weights_path)
         fl_rounds_completed[idx_round] = history
         logger.info("Client %d: end FL round %d", args.client_id, idx_round)
-
+    for round_res in fl_rounds_completed:
+        assert round_res is not None
