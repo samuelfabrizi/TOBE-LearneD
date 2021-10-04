@@ -2,7 +2,10 @@
 This script runs the Federate Learning life cycle of the validator
 """
 import argparse
+import os
 
+from decentralized_smart_grid_ml.federated_learning.federated_aggregator import weighted_average_aggregation
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -48,3 +51,28 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     logger.info("Starting validator %d federated learning")
+
+    path_clients_weights = []
+    for idx_client in range(args.n_clients):
+        client_path = os.path.join(
+            args.client_weights_path,
+            "client_" + str(idx_client),
+            "weights_" + str(idx_client) + ".json"
+        )
+        # here we exploit the fact that the ids goes from 0 to n_clients-1
+        path_clients_weights.append(client_path)
+
+    # TODO: change the alpha vector with the real contributions
+    alpha = [1.0 / args.n_clients for _ in range(args.n_clients)]
+
+    for idx_round in range(args.n_fl_rounds):
+        # TODO: here we need to wait that the validator has published the global baseline model
+        logger.info("Start aggregation FL round %d", idx_round)
+        # TODO: here we need to have the clients' identifier (maybe in the smart contract)
+        clients_weights = []
+        for idx_client in range(args.n_clients):
+            clients_weights.append((load_fl_model_weights(path_clients_weights[idx_client])))
+        global_weights = weighted_average_aggregation(clients_weights, alpha)
+        # TODO: load the model, set the new weights and compute the metrics for the evaluation
+        #       on the test set
+        logger.info("End aggregation FL round %d", idx_round)
