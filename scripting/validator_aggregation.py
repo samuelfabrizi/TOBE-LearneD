@@ -4,8 +4,10 @@ This script runs the Federate Learning life cycle of the validator
 import argparse
 import os
 
+import pandas as pd
+
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import weighted_average_aggregation
-from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model_weights
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model_weights, load_fl_model
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -27,6 +29,14 @@ if __name__ == '__main__':
         metavar='global_model_path',
         type=str,
         help='The directory path to the global model',
+        required=True
+    )
+    parser.add_argument(
+        '--test_set_path',
+        dest='test_set_path',
+        metavar='test_set_path',
+        type=str,
+        help='The file path to the test set',
         required=True
     )
     parser.add_argument(
@@ -52,6 +62,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting validator %d federated learning")
 
+    test_set_df = pd.read_csv(args.test_set_path)
+    # extract the global model
+    global_model = load_fl_model(args.global_model_path)
+
+    # TODO: generalize this function to extract features and labels from the dataset
+    x_test, y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
+
     path_clients_weights = []
     for idx_client in range(args.n_clients):
         client_path = os.path.join(
@@ -73,6 +90,10 @@ if __name__ == '__main__':
         for idx_client in range(args.n_clients):
             clients_weights.append((load_fl_model_weights(path_clients_weights[idx_client])))
         global_weights = weighted_average_aggregation(clients_weights, alpha)
-        # TODO: load the model, set the new weights and compute the metrics for the evaluation
-        #       on the test set
+        global_model.set_weights(global_weights)
+        print(
+            "Evaluation of the global model "
+            "at round %d:\n\t" % idx_round,
+            global_model.evaluate(x_test, y_test)
+        )
         logger.info("End aggregation FL round %d", idx_round)
