@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_for_clients
+from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_validator_clients
 
 logger = create_logger(__name__)
 
@@ -65,13 +65,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     logger.info("Starting dataset split script")
-    datasets_clients = split_dataset_for_clients(
+    dataset_test, datasets_clients = split_dataset_validator_clients(
         args.dataset_path,
         args.n_clients,
+        args.test_size,
         random_state=args.random_state,
         shuffle=args.shuffle
     )
     dataset_name = Path(args.dataset_path).stem
+    # store the clients' local datasets
     for idx_client, dataset_client in enumerate(datasets_clients):
         directory_client = os.path.join(
             args.ml_task_directory_path,
@@ -84,3 +86,16 @@ if __name__ == '__main__':
         )
         dataset_client.to_csv(str(dataset_client_path))
         logger.info("Dataset client %d saved in %s", idx_client, dataset_client_path)
+
+    directory_validator = os.path.join(
+        args.ml_task_directory_path,
+        "validator"
+    )
+    Path(directory_validator).mkdir(parents=True, exist_ok=True)
+    dataset_test_path = os.path.join(
+        directory_validator,
+        dataset_name + "_test.csv"
+    )
+    logger.info("Test set validator saved in %s", dataset_test_path)
+    # store the validator's test datasets
+    dataset_test.to_csv(str(dataset_test_path))
