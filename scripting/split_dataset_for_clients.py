@@ -1,13 +1,14 @@
 """
-This script is a simple utility to split a given dataset in different datasets according to the number
-of clients
+This script is a simple utility to split a given dataset so that it is possible to simulate the framework.
+First of all, it extracts the test set for the validator. Then, it splits the remaining dataset according
+to the number of clients.
 """
 import argparse
 import os
 from pathlib import Path
 
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_for_clients
+from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_validator_clients
 
 logger = create_logger(__name__)
 
@@ -21,6 +22,14 @@ if __name__ == '__main__':
         type=str,
         help='The file system path to the ML dataset to split',
         required=True
+    )
+    parser.add_argument(
+        '--test_size',
+        dest='test_size',
+        metavar='test_size',
+        type=float,
+        help='The size of the test set, it has to be a float value between 0 and 1.0',
+        default=0.2
     )
     parser.add_argument(
         '--n_clients',
@@ -56,13 +65,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     logger.info("Starting dataset split script")
-    datasets_clients = split_dataset_for_clients(
+    dataset_test, datasets_clients = split_dataset_validator_clients(
         args.dataset_path,
         args.n_clients,
+        args.test_size,
         random_state=args.random_state,
         shuffle=args.shuffle
     )
     dataset_name = Path(args.dataset_path).stem
+    # store the clients' local datasets
     for idx_client, dataset_client in enumerate(datasets_clients):
         directory_client = os.path.join(
             args.ml_task_directory_path,
@@ -75,3 +86,16 @@ if __name__ == '__main__':
         )
         dataset_client.to_csv(str(dataset_client_path))
         logger.info("Dataset client %d saved in %s", idx_client, dataset_client_path)
+
+    directory_validator = os.path.join(
+        args.ml_task_directory_path,
+        "validator"
+    )
+    Path(directory_validator).mkdir(parents=True, exist_ok=True)
+    dataset_test_path = os.path.join(
+        directory_validator,
+        dataset_name + "_test.csv"
+    )
+    logger.info("Test set validator saved in %s", dataset_test_path)
+    # store the validator's test datasets
+    dataset_test.to_csv(str(dataset_test_path))
