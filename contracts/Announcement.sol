@@ -30,7 +30,7 @@ contract Announcement {
     bytes32 _modelWeights,
     uint8 _flRound
     )
-    public {
+    public onlyManufacturer() {
     taskName = _taskName;
     taskDescription = _taskDescription;
     deadlineDate = _deadlineDate;
@@ -41,7 +41,10 @@ contract Announcement {
   }
 
   modifier onlyManufacturer() {
-    require(msg.sender == manufacturerAddress);
+    require(
+      msg.sender == manufacturerAddress,
+      "Sender not authorized"
+    );
     _;
   }
 
