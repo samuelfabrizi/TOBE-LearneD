@@ -16,9 +16,18 @@ contract Announcement {
   // in modelArtifact
   bytes32 public modelWeights;
   uint8 public flRound;
+  mapping(address => bool[]) public participants;
 
   constructor () public {
     manufacturerAddress = msg.sender;
+  }
+
+  modifier onlyManufacturer() {
+    require(
+      msg.sender == manufacturerAddress,
+      "Sender not authorized"
+    );
+    _;
   }
 
   function initialize (
@@ -40,12 +49,8 @@ contract Announcement {
     flRound = _flRound;
   }
 
-  modifier onlyManufacturer() {
-    require(
-      msg.sender == manufacturerAddress,
-      "Sender not authorized"
-    );
-    _;
+  function subscribe() public {
+    participants[msg.sender] = new bool[](flRound);
   }
 
 }

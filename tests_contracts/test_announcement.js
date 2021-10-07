@@ -79,4 +79,23 @@ contract("Test Announcement smart contract", accounts => {
 
   });
 
+  describe("Consumer subscription", async () => {
+
+    beforeEach('Consumer 1 subscribes to the task', async () => {
+      await announcementInstance.subscribe({from: consumer1});
+      nFlRounds = await announcementInstance.flRound();
+    });
+
+    it("should initialize the consumer array", async () => {
+      for (let i=0; i<nFlRounds; i++){
+        assert.equal(
+          await announcementInstance.participants(consumer1, i),
+          false,
+          "The " + i + " entry should be initialized"
+        );
+      }
+    });
+
+  });
+
 });
