@@ -101,14 +101,20 @@ contract("Test Announcement smart contract", accounts => {
       nFlRounds = await announcementInstance.flRound();
     });
 
-    it("should initialize the consumer array", async () => {
-      for (let i=0; i<nFlRounds; i++){
-        assert.equal(
-          await announcementInstance.participants(consumer1, i),
-          false,
-          "The " + i + " entry should be initialized"
-        );
-      }
+    it("the Consumer 1 should be subscribed", async () => {
+      assert.equal(
+        await announcementInstance.isSubscribed({from: consumer1}),
+        true,
+        "The consumer" + consumer1 + " should be subscribed"
+      );
+    });
+
+    it("the Consumer 2 should not be subscribed", async () => {
+      assert.equal(
+        await announcementInstance.isSubscribed({from: consumer2}),
+        false,
+        "The consumer" + consumer2 + " should be subscribed"
+      );
     });
 
   });
