@@ -53,7 +53,7 @@ contract Announcement {
 
   /// @notice Initializes the announcement
   /// @param _taskName name of the task
-  /// @param _description description of the task
+  /// @param _taskDescription description of the task
   /// @param _deadlineDate date of the deadline
   /// @param _modelArtifact directory path to the whole model
   ///        (both config and weights)
