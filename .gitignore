@@ -123,3 +123,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# npm files
+node_modules/
+package-lock.json

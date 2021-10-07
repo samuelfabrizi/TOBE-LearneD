@@ -2,6 +2,11 @@ pragma solidity >=0.4.22 <0.9.0;
 
 contract Announcement {
 
+  struct ParticipantSubscription {
+    bool isSubscribed;
+    bool[] rounds;
+  }
+
   address public manufacturerAddress;
   bytes32 public taskName;
   // we can move the description in a decentralized storage
@@ -16,9 +21,18 @@ contract Announcement {
   // in modelArtifact
   bytes32 public modelWeights;
   uint8 public flRound;
+  mapping(address => ParticipantSubscription) public participants;
 
   constructor () public {
     manufacturerAddress = msg.sender;
+  }
+
+  modifier onlyManufacturer() {
+    require(
+      msg.sender == manufacturerAddress,
+      "Sender not authorized"
+    );
+    _;
   }
 
   function initialize (
@@ -40,12 +54,17 @@ contract Announcement {
     flRound = _flRound;
   }
 
-  modifier onlyManufacturer() {
-    require(
-      msg.sender == manufacturerAddress,
-      "Sender not authorized"
+  function subscribe() public {
+    participants[msg.sender] = ParticipantSubscription(
+      true,
+      new bool[](flRound)
     );
-    _;
   }
+
+
+  function isSubscribed() public view returns(bool) {
+    return participants[msg.sender].isSubscribed; 
+  }
+
 
 }
