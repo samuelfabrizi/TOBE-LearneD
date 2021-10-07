@@ -1,3 +1,4 @@
+const truffleAssert = require('truffle-assertions');
 const Announcement = artifacts.require("Announcement");
 
 const taskName = "Task test";
@@ -27,6 +28,20 @@ contract("Test Announcement smart contract", accounts => {
       "The owner of the Announcement SC should be the manufacturer: " + manufacturer);
     });
 
+    it("should reject the initialization", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          web3.utils.fromUtf8(taskName),
+          web3.utils.fromUtf8(taskDescription),
+          deadlineDate,
+          web3.utils.fromUtf8(modelArtifact),
+          web3.utils.fromUtf8(modelConfig),
+          web3.utils.fromUtf8(modelWeights),
+          flRound,
+          {from: consumer1}
+        )
+      );
+    });
 
     it("should initialize the Announcement SC with the ML task attributes", async () => {
       await announcementInstance.initialize(
