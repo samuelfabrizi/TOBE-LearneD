@@ -8,6 +8,7 @@ const deadlineDate = 8;
 const modelArtifact = "path/to/model_artifact";
 const modelConfig = "path/to/model_config";
 const modelWeights = "path/to/model_weights";
+const featuresNames = "path/to/features_names";
 const flRound = 5;
 
 contract("Test Announcement smart contract", accounts => {
@@ -37,6 +38,7 @@ contract("Test Announcement smart contract", accounts => {
           web3.utils.fromUtf8(modelArtifact),
           web3.utils.fromUtf8(modelConfig),
           web3.utils.fromUtf8(modelWeights),
+          web3.utils.fromUtf8(featuresNames),
           flRound,
           {from: consumer1}
         )
@@ -51,6 +53,7 @@ contract("Test Announcement smart contract", accounts => {
         web3.utils.fromUtf8(modelArtifact),
         web3.utils.fromUtf8(modelConfig),
         web3.utils.fromUtf8(modelWeights),
+        web3.utils.fromUtf8(featuresNames),
         flRound,
         {from: manufacturer}
       );
@@ -83,6 +86,11 @@ contract("Test Announcement smart contract", accounts => {
         web3.utils.toUtf8(await announcementInstance.modelWeights()),
         modelWeights,
         "The model's weights should be " + manufacturer
+      );
+      assert.equal(
+        web3.utils.toUtf8(await announcementInstance.featuresNames()),
+        featuresNames,
+        "The federated rounds should be " + manufacturer
       );
       assert.equal(
         await announcementInstance.flRound(),
