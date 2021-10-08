@@ -36,7 +36,7 @@ contract Announcement {
   bytes32 public featuresNames;
   // number of rounds for the federated learning
   uint8 public flRound;
-  mapping(address => ParticipantSubscription) public participants;
+  mapping(address => ParticipantSubscription) private participants;
 
   /// @notice Sets the manufacturer address
   constructor () public {
