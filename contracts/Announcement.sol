@@ -32,6 +32,8 @@ contract Announcement {
   // in modelArtifact
   // file path to model's weights
   bytes32 public modelWeights;
+  // file path to the name of the ML task features
+  bytes32 public featuresNames;
   // number of rounds for the federated learning
   uint8 public flRound;
   mapping(address => ParticipantSubscription) public participants;
@@ -59,6 +61,7 @@ contract Announcement {
   ///        (both config and weights)
   /// @param _modelConfig file path to model's config
   /// @param _modelWeights file path to model's weights
+  /// @param _featuresNames file path to the name of the ML task features
   /// @param _flRound number of rounds for the federated learning
   function initialize (
     bytes32 _taskName,
@@ -67,6 +70,7 @@ contract Announcement {
     bytes32 _modelArtifact,
     bytes32 _modelConfig,
     bytes32 _modelWeights,
+    bytes32 _featuresNames,
     uint8 _flRound
     )
     public onlyManufacturer() {
@@ -76,6 +80,7 @@ contract Announcement {
     modelArtifact = _modelArtifact;
     modelConfig = _modelConfig;
     modelWeights = _modelWeights;
+    featuresNames = _featuresNames;
     flRound = _flRound;
   }
 
