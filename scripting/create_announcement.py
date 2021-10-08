@@ -1,3 +1,6 @@
+"""
+This script permits the automatic initialization of an Announcement smart contract
+"""
 import argparse
 import json
 
