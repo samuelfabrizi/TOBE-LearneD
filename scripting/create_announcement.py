@@ -132,10 +132,10 @@ if __name__ == '__main__':
         args.task_name.encode('utf-8'),
         args.task_description.encode('utf-8'),
         args.task_deadline,
-        args.model_artifact.encode('utf-8'),
-        args.model_config.encode('utf-8'),
-        args.model_weights.encode('utf-8'),
-        args.features_names.encode('utf-8'),
+        args.model_artifact,
+        args.model_config,
+        args.model_weights,
+        args.features_names,
         args.fl_rounds
     ).transact({'from': args.manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
