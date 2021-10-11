@@ -24,16 +24,16 @@ contract Announcement {
   // date of the deadline
   uint256 public deadlineDate;
   // directory path to the whole model (both config and weights)
-  bytes32 public modelArtifact;
+  string public modelArtifact;
   // this field is only to show a human-readable model's config
   // file path to model's config
-  bytes32 public modelConfig;
+  string public modelConfig;
   // actually this is not used by the participants, it is contained
   // in modelArtifact
   // file path to model's weights
-  bytes32 public modelWeights;
+  string public modelWeights;
   // file path to the name of the ML task features
-  bytes32 public featuresNames;
+  string public featuresNames;
   // number of rounds for the federated learning
   uint8 public flRound;
   mapping(address => ParticipantSubscription) private participants;
@@ -67,10 +67,10 @@ contract Announcement {
     bytes32 _taskName,
     bytes32 _taskDescription,
     uint256 _deadlineDate,
-    bytes32 _modelArtifact,
-    bytes32 _modelConfig,
-    bytes32 _modelWeights,
-    bytes32 _featuresNames,
+    string memory _modelArtifact,
+    string memory _modelConfig,
+    string memory _modelWeights,
+    string memory _featuresNames,
     uint8 _flRound
     )
     public onlyManufacturer() {

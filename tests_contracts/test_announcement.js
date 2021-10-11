@@ -35,10 +35,10 @@ contract("Test Announcement smart contract", accounts => {
           web3.utils.fromUtf8(taskName),
           web3.utils.fromUtf8(taskDescription),
           deadlineDate,
-          web3.utils.fromUtf8(modelArtifact),
-          web3.utils.fromUtf8(modelConfig),
-          web3.utils.fromUtf8(modelWeights),
-          web3.utils.fromUtf8(featuresNames),
+          modelArtifact,
+          modelConfig,
+          modelWeights,
+          featuresNames,
           flRound,
           {from: consumer1}
         )
@@ -50,10 +50,10 @@ contract("Test Announcement smart contract", accounts => {
         web3.utils.fromUtf8(taskName),
         web3.utils.fromUtf8(taskDescription),
         deadlineDate,
-        web3.utils.fromUtf8(modelArtifact),
-        web3.utils.fromUtf8(modelConfig),
-        web3.utils.fromUtf8(modelWeights),
-        web3.utils.fromUtf8(featuresNames),
+        modelArtifact,
+        modelConfig,
+        modelWeights,
+        featuresNames,
         flRound,
         {from: manufacturer}
       );
@@ -73,22 +73,22 @@ contract("Test Announcement smart contract", accounts => {
         "The task deadline should be " + manufacturer
       );
       assert.equal(
-        web3.utils.toUtf8(await announcementInstance.modelArtifact()),
+        await announcementInstance.modelArtifact(),
         modelArtifact,
         "The model's artifact should be " + manufacturer
       );
       assert.equal(
-        web3.utils.toUtf8(await announcementInstance.modelConfig()),
+        await announcementInstance.modelConfig(),
         modelConfig,
         "The model's config should be " + manufacturer
       );
       assert.equal(
-        web3.utils.toUtf8(await announcementInstance.modelWeights()),
+        await announcementInstance.modelWeights(),
         modelWeights,
         "The model's weights should be " + manufacturer
       );
       assert.equal(
-        web3.utils.toUtf8(await announcementInstance.featuresNames()),
+        await announcementInstance.featuresNames(),
         featuresNames,
         "The federated rounds should be " + manufacturer
       );
