@@ -101,11 +101,6 @@ if __name__ == '__main__':
     n_fl_rounds = contract.functions.flRound().call({"from": args.participant_address})
     global_model_path = contract.functions.modelArtifact().call({"from": args.participant_address})
 
-    model_weights_path = os.path.join(
-        args.client_directory_path,
-        "weights_" + str(args.client_id) + ".json"
-    )
-
     local_dataset = pd.read_csv(args.local_dataset_path)
     logger.info("Client %d: dataset loaded from %s", args.client_id, args.local_dataset_path)
 
@@ -120,6 +115,10 @@ if __name__ == '__main__':
         local_model = load_fl_model(global_model_path)
         history = local_model.fit(x, y, epochs=EPOCHS, shuffle=True)
         # TODO: send the local model's weights at the end of the FL round
+        model_weights_path = os.path.join(
+            args.client_directory_path,
+            "weights_round_" + str(idx_round) + "_" + ".json"
+        )
         save_fl_model_weights(local_model, model_weights_path)
         fl_rounds_completed[idx_round] = history
         logger.info("Client %d: end FL round %d", args.client_id, idx_round)
