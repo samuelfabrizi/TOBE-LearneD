@@ -1,12 +1,15 @@
 """
-This module contains the function used to aggregate the local models' weights
+This module contains a the functions used to aggregate the local models' weights
 in the global one
 """
+from pathlib import Path
+
 import pandas as pd
 
 from decentralized_smart_grid_ml.exceptions import NotValidClientsModelsError, \
     NotValidAlphaVectorError
-from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
+    load_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -57,9 +60,17 @@ def weighted_average_aggregation(models_weights, alpha):
 
 
 class Aggregator:
+    """ This class is responsible for the participant models' aggregation """
 
-    def __init__(self, client_ids, n_fl_rounds, global_model_path, test_set_path):
-        self.client_ids = client_ids
+    def __init__(self, participant_ids, n_fl_rounds, global_model_path, test_set_path):
+        """
+        Initializes the aggregator
+        :param participant_ids: participants' identifier
+        :param n_fl_rounds: number of federated rounds
+        :param global_model_path: directory path to the global baseline model
+        :param test_set_path: file path to the test set
+        """
+        self.participant_ids = participant_ids
         self.n_fl_rounds = n_fl_rounds
         self.global_model = load_fl_model(global_model_path)
         test_set_df = pd.read_csv(test_set_path)
@@ -67,11 +78,43 @@ class Aggregator:
         self.x_test, self.y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
         self.rounds2participants = {}
         self._initialize_rounds2participants()
+        self.current_round = 0
 
     def _initialize_rounds2participants(self):
         for idx_round in range(self.n_fl_rounds):
             self.rounds2participants[idx_round] = {
-                "participant_weights": [],
                 # TODO: takes a subset of the client ids at each round
-                "client_ids": self.client_ids,
+                "valid_participant_ids": self.participant_ids,
+                "participant_weights": [],
+                "participant_ids": []
             }
+
+    def add_participant_weights(self, path_file_created):
+        """
+        Adds the local weights (if valid) of a participant (if valid) in the current round
+        :param path_file_created: file path to the local model's weights of the client
+        :return:
+        """
+        file_name_without_extension = Path(path_file_created).stem
+        if file_name_without_extension.endswith("round_" + str(self.current_round)):
+            directory = path_file_created.split("/")[-2]
+            participant_id = int(directory[-1])
+            if participant_id in \
+                    self.rounds2participants[self.current_round]["valid_participant_ids"]:
+                self.rounds2participants[self.current_round]["participant_weights"].append(
+                    load_fl_model_weights(path_file_created)
+                )
+                self.rounds2participants[self.current_round]["participant_ids"].append(
+                    participant_id
+                )
+            else:
+                logger.warning(
+                    "The participant_id %s is not valid for the current round (%d), Skipping...",
+                    participant_id,
+                    self.current_round
+                )
+        else:
+            logger.warning(
+                "The path %s does not correspond to the current round (%d), Skipping...",
+                path_file_created, self.current_round
+            )

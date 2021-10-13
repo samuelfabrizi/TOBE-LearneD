@@ -73,12 +73,14 @@ class TestFederatedAggregator(unittest.TestCase):
         load_fl_model_mock.return_value = model_artifact
         rounds2participants_expected = {
             0: {
+                "valid_participant_ids": client_ids,
                 "participant_weights": [],
-                "client_ids": client_ids
+                "participant_ids": []
             },
             1: {
+                "valid_participant_ids": client_ids,
                 "participant_weights": [],
-                "client_ids": client_ids
+                "participant_ids": []
             }
         }
         aggregator = Aggregator(
@@ -91,3 +93,54 @@ class TestFederatedAggregator(unittest.TestCase):
         load_fl_model_mock.assert_called_with(global_model_path)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
+
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_add_participant_weights(self, aggregator_init_mock, load_fl_model_weights_mock):
+        # simulate correct file path for client 0, round 0
+        path_file_created = "/clients/client_0/weights_round_0.json"
+        load_fl_model_weights_mock.return_value = [1, 2]
+        aggregator = Aggregator("test/path")
+        aggregator.current_round = 0
+        aggregator.rounds2participants = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [],
+                "participant_ids": []
+            }
+        }
+        rounds2participants_expected = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2]],
+                "participant_ids": [0]
+            }
+        }
+        aggregator.add_participant_weights(path_file_created)
+        load_fl_model_weights_mock.called_with(path_file_created)
+        self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
+
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_add_participant_weights_wrong_round(self, aggregator_init_mock):
+        # simulate wrong file path for not existing round 1
+        path_file_created = "/clients/client_0/weights_round_1.json"
+        aggregator = Aggregator("test/path")
+        aggregator.current_round = 0
+        aggregator.add_participant_weights(path_file_created)
+
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_add_participant_weights_wrong_client_id(self, aggregator_init_mock, load_fl_model_weights_mock):
+        # simulate wrong file path for not existing client 1
+        path_file_created = "/clients/client_1/weights_round_0.json"
+        aggregator = Aggregator("test/path")
+        aggregator.current_round = 0
+        aggregator.rounds2participants = {
+            0: {
+                # the client id 1 is not present in the valid ones
+                "valid_participant_ids": [0],
+                "participant_weights": [],
+                "participant_ids": []
+            }
+        }
+        aggregator.add_participant_weights(path_file_created)
