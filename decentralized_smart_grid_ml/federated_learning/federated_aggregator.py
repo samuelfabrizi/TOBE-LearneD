@@ -62,13 +62,17 @@ def weighted_average_aggregation(models_weights, alpha):
 class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
-    def __init__(self, participant_ids, n_fl_rounds, global_model_path, test_set_path):
+    def __init__(self, participant_ids, n_fl_rounds,
+                 global_model_path, test_set_path,
+                 baseline_model_weights_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
         :param n_fl_rounds: number of federated rounds
         :param global_model_path: directory path to the global baseline model
         :param test_set_path: file path to the test set
+        :param baseline_model_weights_path: path to the directory that will contain the
+            baseline model's weights (one for each round)
         """
         self.participant_ids = participant_ids
         self.n_fl_rounds = n_fl_rounds
@@ -79,6 +83,7 @@ class Aggregator:
         self.rounds2participants = {}
         self._initialize_rounds2participants()
         self.current_round = 0
+        self.baseline_model_weights_path = baseline_model_weights_path
 
     def _initialize_rounds2participants(self):
         for idx_round in range(self.n_fl_rounds):
@@ -89,11 +94,19 @@ class Aggregator:
                 "participant_ids": []
             }
 
+    def _local_training_is_completed(self, idx_round):
+        is_completed = \
+            len(self.rounds2participants[idx_round]["participant_ids"]) \
+            == \
+            len(self.rounds2participants[idx_round]["valid_participant_ids"])
+        return is_completed
+
     def add_participant_weights(self, path_file_created):
         """
         Adds the local weights (if valid) of a participant (if valid) in the current round
         :param path_file_created: file path to the local model's weights of the client
-        :return:
+        :return:    True if all the participant already publish their local model's weights
+                    False otherwise
         """
         file_name_without_extension = Path(path_file_created).stem
         if file_name_without_extension.endswith("round_" + str(self.current_round)):
@@ -107,14 +120,18 @@ class Aggregator:
                 self.rounds2participants[self.current_round]["participant_ids"].append(
                     participant_id
                 )
+                is_completed = self._local_training_is_completed(self.current_round)
             else:
                 logger.warning(
                     "The participant_id %s is not valid for the current round (%d), Skipping...",
                     participant_id,
                     self.current_round
                 )
+                is_completed = False
         else:
             logger.warning(
                 "The path %s does not correspond to the current round (%d), Skipping...",
                 path_file_created, self.current_round
             )
+            is_completed = False
+        return is_completed

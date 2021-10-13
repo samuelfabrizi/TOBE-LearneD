@@ -64,6 +64,7 @@ class TestFederatedAggregator(unittest.TestCase):
         n_fl_rounds = 2
         global_model_path = "/path/to/model"
         test_set_path = "/path/to/test.csv"
+        baseline_model_weights_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
             "x1": [0, 1],
             "x2": [1, 2],
@@ -87,7 +88,8 @@ class TestFederatedAggregator(unittest.TestCase):
             client_ids,
             n_fl_rounds,
             global_model_path,
-            test_set_path
+            test_set_path,
+            baseline_model_weights_path
         )
         read_csv_mock.assert_called_with(test_set_path)
         load_fl_model_mock.assert_called_with(global_model_path)
@@ -104,21 +106,22 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator.current_round = 0
         aggregator.rounds2participants = {
             0: {
-                "valid_participant_ids": [0, 1],
+                "valid_participant_ids": [0],
                 "participant_weights": [],
                 "participant_ids": []
             }
         }
         rounds2participants_expected = {
             0: {
-                "valid_participant_ids": [0, 1],
+                "valid_participant_ids": [0],
                 "participant_weights": [[1, 2]],
                 "participant_ids": [0]
             }
         }
-        aggregator.add_participant_weights(path_file_created)
+        is_completed = aggregator.add_participant_weights(path_file_created)
         load_fl_model_weights_mock.called_with(path_file_created)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
+        self.assertEqual(True, is_completed)
 
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_add_participant_weights_wrong_round(self, aggregator_init_mock):
@@ -126,7 +129,8 @@ class TestFederatedAggregator(unittest.TestCase):
         path_file_created = "/clients/client_0/weights_round_1.json"
         aggregator = Aggregator("test/path")
         aggregator.current_round = 0
-        aggregator.add_participant_weights(path_file_created)
+        is_completed = aggregator.add_participant_weights(path_file_created)
+        self.assertEqual(False, is_completed)
 
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
@@ -143,4 +147,5 @@ class TestFederatedAggregator(unittest.TestCase):
                 "participant_ids": []
             }
         }
-        aggregator.add_participant_weights(path_file_created)
+        is_completed = aggregator.add_participant_weights(path_file_created)
+        self.assertEqual(False, is_completed)
