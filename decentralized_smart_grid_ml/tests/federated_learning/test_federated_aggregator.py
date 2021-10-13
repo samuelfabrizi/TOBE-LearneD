@@ -1,9 +1,11 @@
 import unittest
+from unittest.mock import patch
 
 import numpy as np
+import pandas as pd
 
 from decentralized_smart_grid_ml.exceptions import NotValidAlphaVectorError, NotValidClientsModelsError
-from decentralized_smart_grid_ml.federated_learning.federated_aggregator import weighted_average_aggregation
+from decentralized_smart_grid_ml.federated_learning.federated_aggregator import weighted_average_aggregation, Aggregator
 
 
 class TestFederatedAggregator(unittest.TestCase):
@@ -54,3 +56,38 @@ class TestFederatedAggregator(unittest.TestCase):
         ]
         with self.assertRaises(NotValidClientsModelsError):
             weighted_average_aggregation([w1, w2], alpha)
+
+    @patch("pandas.read_csv")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model")
+    def test_aggregator_constructor(self, load_fl_model_mock, read_csv_mock):
+        client_ids = [0, 1, 2]
+        n_fl_rounds = 2
+        global_model_path = "/path/to/model"
+        test_set_path = "/path/to/test.csv"
+        read_csv_mock.return_value = pd.DataFrame({
+            "x1": [0, 1],
+            "x2": [1, 2],
+            "y": [0, 1]
+        })
+        model_artifact = "expected model"
+        load_fl_model_mock.return_value = model_artifact
+        rounds2participants_expected = {
+            0: {
+                "participant_weights": [],
+                "client_ids": client_ids
+            },
+            1: {
+                "participant_weights": [],
+                "client_ids": client_ids
+            }
+        }
+        aggregator = Aggregator(
+            client_ids,
+            n_fl_rounds,
+            global_model_path,
+            test_set_path
+        )
+        read_csv_mock.assert_called_with(test_set_path)
+        load_fl_model_mock.assert_called_with(global_model_path)
+        self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
+        self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)

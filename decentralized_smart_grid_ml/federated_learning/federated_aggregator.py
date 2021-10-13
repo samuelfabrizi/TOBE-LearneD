@@ -2,8 +2,11 @@
 This module contains the function used to aggregate the local models' weights
 in the global one
 """
+import pandas as pd
+
 from decentralized_smart_grid_ml.exceptions import NotValidClientsModelsError, \
     NotValidAlphaVectorError
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -51,3 +54,24 @@ def weighted_average_aggregation(models_weights, alpha):
             logger.debug("Update layer %d related to client %d", idx_layer, idx_client)
     logger.info("Finish models' weights aggregation of %d clients", len(alpha))
     return aggregated_weights
+
+
+class Aggregator:
+
+    def __init__(self, client_ids, n_fl_rounds, global_model_path, test_set_path):
+        self.client_ids = client_ids
+        self.n_fl_rounds = n_fl_rounds
+        self.global_model = load_fl_model(global_model_path)
+        test_set_df = pd.read_csv(test_set_path)
+        # TODO: generalize this function to extract features and labels from the dataset
+        self.x_test, self.y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
+        self.rounds2participants = {}
+        self._initialize_rounds2participants()
+
+    def _initialize_rounds2participants(self):
+        for idx_round in range(self.n_fl_rounds):
+            self.rounds2participants[idx_round] = {
+                "participant_weights": [],
+                # TODO: takes a subset of the client ids at each round
+                "client_ids": self.client_ids,
+            }
