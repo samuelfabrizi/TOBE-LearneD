@@ -87,6 +87,10 @@ class Aggregator:
         self.baseline_model_weights_path = baseline_model_weights_path
 
     def _initialize_rounds2participants(self):
+        """
+        Initialize the rounds to participant information mapping
+        :return: 
+        """
         for idx_round in range(self.n_fl_rounds):
             self.rounds2participants[idx_round] = {
                 # TODO: takes a subset of the client ids at each round
@@ -96,6 +100,12 @@ class Aggregator:
             }
 
     def _local_training_is_completed(self, idx_round):
+        """
+        Checks if the local training of participants is completed
+        :param idx_round: round that you want to check
+        :return:    True if all the participants are published their model's weights
+                    False otherwise
+        """
         is_completed = \
             len(self.rounds2participants[idx_round]["participant_ids"]) \
             == \
@@ -138,6 +148,12 @@ class Aggregator:
         return is_completed
 
     def _compute_participants_contribution(self, models_weights, participant_ids):
+        """
+        Computes the participants' contribution
+        :param models_weights: participants models' weights (one for each participant in this round)
+        :param participant_ids: participants' identifier (one for each participant in this round)
+        :return: vector of the contribution
+        """
         n_participants = len(participant_ids)
         # TODO: implement the mechanism to compute the actual participants' contribution
         alpha = [1.0 / n_participants for _ in range(n_participants)]
@@ -148,6 +164,10 @@ class Aggregator:
         return alpha
 
     def update_global_model(self):
+        """
+        Updates the global model and save both contribution and the evalution of the new model
+        :return:
+        """
         alpha = self._compute_participants_contribution(
             self.rounds2participants[self.current_round]["participant_weights"],
             self.rounds2participants[self.current_round]["participant_ids"]
