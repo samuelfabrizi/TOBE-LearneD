@@ -2,6 +2,7 @@
 This module contains a the functions used to aggregate the local models' weights
 in the global one
 """
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -9,7 +10,7 @@ import pandas as pd
 from decentralized_smart_grid_ml.exceptions import NotValidClientsModelsError, \
     NotValidAlphaVectorError
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
-    load_fl_model_weights
+    load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -135,3 +136,43 @@ class Aggregator:
             )
             is_completed = False
         return is_completed
+
+    def _compute_participants_contribution(self, models_weights, participant_ids):
+        n_participants = len(participant_ids)
+        # TODO: implement the mechanism to compute the actual participants' contribution
+        alpha = [1.0 / n_participants for _ in range(n_participants)]
+        logger.info(
+            "Alpha vector for round %d is %s",
+            self.current_round, alpha
+        )
+        return alpha
+
+    def update_global_model(self):
+        alpha = self._compute_participants_contribution(
+            self.rounds2participants[self.current_round]["participant_weights"],
+            self.rounds2participants[self.current_round]["participant_ids"]
+        )
+        # save the alpha vector (contribution) in the dictionary
+        self.rounds2participants[self.current_round]["alpha"] = alpha
+        # update the model
+        global_weights = weighted_average_aggregation(
+            self.rounds2participants[self.current_round]["participant_weights"],
+            alpha
+        )
+        self.global_model.set_weights(global_weights)
+        logger.debug("The global model has been updated with the new weights")
+        evaluation_round = self.global_model.evaluate(self.x_test, self.y_test)
+        logger.info(
+            "Evaluation of the global model at round %d: %s",
+            self.current_round,
+            evaluation_round
+        )
+        self.rounds2participants[self.current_round]["evaluation"] = evaluation_round
+        baseline_file_name = os.path.join(
+            self.baseline_model_weights_path,
+            "validator_weights_round_" + str(self.current_round) + ".json"
+        )
+
+        # next round can start
+        self.current_round += 1
+        save_fl_model_weights(self.global_model, baseline_file_name)
