@@ -63,7 +63,7 @@ if __name__ == '__main__':
     logger.info("Starting validator %d federated learning")
 
     test_set_df = pd.read_csv(args.test_set_path)
-    # extract the global model
+    # extract the global model published by the manufacturer
     global_model = load_fl_model(args.global_model_path)
 
     # TODO: generalize this function to extract features and labels from the dataset
@@ -83,7 +83,8 @@ if __name__ == '__main__':
     alpha = [1.0 / args.n_clients for _ in range(args.n_clients)]
 
     for idx_round in range(args.n_fl_rounds):
-        # TODO: here we need to wait that the validator has published the global baseline model
+        # TODO: here we need to wait that the participants have finished the local
+        #       training
         logger.info("Start aggregation FL round %d", idx_round)
         # TODO: here we need to have the clients' identifier (maybe in the smart contract)
         clients_weights = []
