@@ -117,7 +117,7 @@ if __name__ == '__main__':
         # TODO: send the local model's weights at the end of the FL round
         model_weights_path = os.path.join(
             args.client_directory_path,
-            "weights_round_" + str(idx_round) + "_" + ".json"
+            "weights_round_" + str(idx_round) + ".json"
         )
         save_fl_model_weights(local_model, model_weights_path)
         fl_rounds_completed[idx_round] = history
