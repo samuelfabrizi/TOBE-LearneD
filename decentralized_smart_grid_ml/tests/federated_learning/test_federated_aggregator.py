@@ -1,3 +1,4 @@
+import pathlib
 import unittest
 from unittest.mock import patch
 
@@ -150,12 +151,13 @@ class TestFederatedAggregator(unittest.TestCase):
         is_completed = aggregator.add_participant_weights(path_file_created)
         self.assertEqual(False, is_completed)
 
+    @patch.object(pathlib.Path, 'mkdir')
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
     @patch("tensorflow.keras.Sequential")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.save_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_update_global_model(self, aggregator_init_mock, save_fl_model_weights_mock,
-                                 global_model_mock, weighted_average_aggregation_mock):
+                                 global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         evaluation = ["0.8", "0.7"]
         x_test = [[1, 2], [2, 3]]

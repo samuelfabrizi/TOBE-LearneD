@@ -192,6 +192,8 @@ class Aggregator:
             self.model_weights_new_round_path,
             "validator_weights_round_" + str(self.current_round) + ".json"
         )
+        output_folder = Path(self.model_weights_new_round_path)
+        output_folder.mkdir(parents=True, exist_ok=True)
         save_fl_model_weights(self.global_model, baseline_file_name)
         # next round can start
         self.current_round += 1
