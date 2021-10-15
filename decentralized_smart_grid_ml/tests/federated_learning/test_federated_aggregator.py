@@ -95,7 +95,6 @@ class TestFederatedAggregator(unittest.TestCase):
         read_csv_mock.assert_called_with(test_set_path)
         load_fl_model_mock.assert_called_with(global_model_path)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
-        self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
 
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
