@@ -12,13 +12,14 @@ from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 logger = create_logger(__name__)
 
 
-def split_dataset_validator_clients(dataset_path, n_clients, test_size=0.2, random_state=None, shuffle=False):
+def split_dataset_validator_clients(dataset_path, n_clients, test_size=0.2,
+                                    random_state=None, shuffle=False):
     """
     Splits a given dataset in N datasets, one for each client
     :param dataset_path: file path to the whole original dataset
     :param n_clients: number of clients
     :param random_state: random state used for reproducibility
-    :param test_size: represent the proportion of the dataset to include in the validator's test split
+    :param test_size: represents the proportion of the dataset to include in the test split
     :param shuffle: if it is True, the dataset is shuffled
     :return: (dataset_test, clients_dataset) where
             dataset_test is the validator's test split
