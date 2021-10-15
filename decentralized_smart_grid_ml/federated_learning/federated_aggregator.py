@@ -1,5 +1,5 @@
 """
-This module contains a the functions used to aggregate the local models' weights
+This module contains both functions and classes used to aggregate the local models' weights
 in the global one
 """
 import os
