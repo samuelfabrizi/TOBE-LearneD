@@ -2,6 +2,9 @@
 This script runs the Federate Learning life cycle of the validator
 """
 import argparse
+import time
+
+from watchdog.observers import Observer
 
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
@@ -52,7 +55,6 @@ if __name__ == '__main__':
         help="The directory path to the model's weights for each round",
         required=True
     )
-    '''
     # TODO: this argument has to be removed when we implemented the communication between
     #       validator and clients
     parser.add_argument(
@@ -61,10 +63,9 @@ if __name__ == '__main__':
         metavar='client_weights_path',
         type=str,
         help="The directory path that contains the sub-directories for the "
-             "weights of the clients' models",
+             "weights of the local trained clients' models",
         required=True
     )
-    '''
 
     args = parser.parse_args()
     logger.info("Starting validator job")
@@ -79,3 +80,18 @@ if __name__ == '__main__':
         args.model_weights_new_round_path
     )
     aggregator_handler = ValidatorHandler(aggregator=aggregator)
+    path = "."
+    go_recursively = True
+
+    validator_observer = Observer()
+    validator_observer.schedule(aggregator_handler, args.client_weights_path, recursive=True)
+    # start the observer
+    logger.info("Starting the observer for the validator")
+    validator_observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        # stop and join the observer
+        validator_observer.stop()
+        validator_observer.join()
