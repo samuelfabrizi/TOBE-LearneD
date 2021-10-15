@@ -151,6 +151,16 @@ class TestFederatedAggregator(unittest.TestCase):
         is_completed = aggregator.add_participant_weights(path_file_created)
         self.assertEqual(False, is_completed)
 
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_add_participant_weights_wrong_malformed_path(self, aggregator_init_mock, load_fl_model_weights_mock):
+        # simulate wrong file path for not existing client 1
+        path_file_created = "/clients/weights_round_0.json"
+        aggregator = Aggregator()
+        aggregator.current_round = 0
+        is_completed = aggregator.add_participant_weights(path_file_created)
+        self.assertEqual(False, is_completed)
+
     @patch.object(pathlib.Path, 'mkdir')
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
     @patch("tensorflow.keras.Sequential")

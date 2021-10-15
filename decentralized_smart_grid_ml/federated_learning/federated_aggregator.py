@@ -122,9 +122,19 @@ class Aggregator:
         file_name_without_extension = Path(path_file_created).stem
         if file_name_without_extension.endswith("round_" + str(self.current_round)):
             directory = path_file_created.split("/")[-2]
-            participant_id = int(directory[-1])
-            if participant_id in \
-                    self.rounds2participants[self.current_round]["valid_participant_ids"]:
+            try:
+                participant_id = int(directory[-1])
+            except ValueError:
+                logger.warning(
+                    "Malformed path %s, Skipping...",
+                    path_file_created
+                )
+                return False
+            if \
+                    participant_id in \
+                    self.rounds2participants[self.current_round]["valid_participant_ids"] \
+                    and participant_id not in \
+                    self.rounds2participants[self.current_round]["participant_ids"]:
                 self.rounds2participants[self.current_round]["participant_weights"].append(
                     load_fl_model_weights(path_file_created)
                 )
