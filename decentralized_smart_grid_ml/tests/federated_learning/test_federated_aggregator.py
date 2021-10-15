@@ -64,7 +64,7 @@ class TestFederatedAggregator(unittest.TestCase):
         n_fl_rounds = 2
         global_model_path = "/path/to/model"
         test_set_path = "/path/to/test.csv"
-        baseline_model_weights_path = "/path/to/new_model_weights"
+        model_weights_new_round_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
             "x1": [0, 1],
             "x2": [1, 2],
@@ -89,7 +89,7 @@ class TestFederatedAggregator(unittest.TestCase):
             n_fl_rounds,
             global_model_path,
             test_set_path,
-            baseline_model_weights_path
+            model_weights_new_round_path
         )
         read_csv_mock.assert_called_with(test_set_path)
         load_fl_model_mock.assert_called_with(global_model_path)
@@ -156,7 +156,7 @@ class TestFederatedAggregator(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_update_global_model(self, aggregator_init_mock, save_fl_model_weights_mock,
                                  global_model_mock, weighted_average_aggregation_mock):
-        baseline_model_weights_path = "/path/to/new_model_weights/"
+        model_weights_new_round_path = "/path/to/new_model_weights/"
         evaluation = ["0.8", "0.7"]
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
@@ -167,7 +167,7 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator.current_round = 0
         aggregator.x_test = x_test
         aggregator.y_test = y_test
-        aggregator.baseline_model_weights_path = baseline_model_weights_path
+        aggregator.model_weights_new_round_path = model_weights_new_round_path
         aggregator.rounds2participants = {
             0: {
                 "valid_participant_ids": [0, 1],
@@ -193,7 +193,7 @@ class TestFederatedAggregator(unittest.TestCase):
         )
         save_fl_model_weights_mock.assert_called_with(
             global_model_mock,
-            baseline_model_weights_path + "validator_weights_round_0.json",
+            model_weights_new_round_path + "validator_weights_round_0.json",
         )
         self.assertDictEqual(
             rounds2participants_expected,

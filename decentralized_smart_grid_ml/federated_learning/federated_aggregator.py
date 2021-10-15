@@ -65,15 +65,15 @@ class Aggregator:
 
     def __init__(self, participant_ids, n_fl_rounds,
                  global_model_path, test_set_path,
-                 baseline_model_weights_path):
+                 model_weights_new_round_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
         :param n_fl_rounds: number of federated rounds
         :param global_model_path: directory path to the global baseline model
         :param test_set_path: file path to the test set
-        :param baseline_model_weights_path: path to the directory that will contain the
-            baseline model's weights (one for each round)
+        :param model_weights_new_round_path: path to the directory that will contain the
+            new model's weights (one for each round)
         """
         self.participant_ids = participant_ids
         self.n_fl_rounds = n_fl_rounds
@@ -84,12 +84,12 @@ class Aggregator:
         self.rounds2participants = {}
         self._initialize_rounds2participants()
         self.current_round = 0
-        self.baseline_model_weights_path = baseline_model_weights_path
+        self.model_weights_new_round_path = model_weights_new_round_path
 
     def _initialize_rounds2participants(self):
         """
         Initialize the rounds to participant information mapping
-        :return: 
+        :return:
         """
         for idx_round in range(self.n_fl_rounds):
             self.rounds2participants[idx_round] = {
@@ -189,10 +189,9 @@ class Aggregator:
         )
         self.rounds2participants[self.current_round]["evaluation"] = evaluation_round
         baseline_file_name = os.path.join(
-            self.baseline_model_weights_path,
+            self.model_weights_new_round_path,
             "validator_weights_round_" + str(self.current_round) + ".json"
         )
-
+        save_fl_model_weights(self.global_model, baseline_file_name)
         # next round can start
         self.current_round += 1
-        save_fl_model_weights(self.global_model, baseline_file_name)
