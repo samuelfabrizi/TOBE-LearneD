@@ -2,11 +2,14 @@
 This script runs the Federate Learning life cycle of the validator
 """
 import argparse
+import json
 import sys
 import time
 
 from watchdog.observers import Observer
+from web3 import Web3, HTTPProvider
 
+from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -17,19 +20,35 @@ logger = create_logger(__name__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--n_fl_rounds',
-        dest='n_fl_rounds',
-        metavar='n_fl_rounds',
-        type=int,
-        help='Number of federated learning rounds',
+        '--blockchain_address',
+        dest='blockchain_address',
+        metavar='blockchain_address',
+        type=str,
+        help='The address of the blockchain',
         required=True
     )
     parser.add_argument(
-        '--global_model_path',
-        dest='global_model_path',
-        metavar='global_model_path',
+        '--validator_address',
+        dest='validator_address',
+        metavar='validator_address',
         type=str,
-        help='The directory path to the global model',
+        help='The address of the validator',
+        required=True
+    )
+    parser.add_argument(
+        '--announcement_contract_address',
+        dest='announcement_contract_address',
+        metavar='announcement_contract_address',
+        type=str,
+        help='The address of the announcement contract',
+        required=True
+    )
+    parser.add_argument(
+        '--announcement_json_path',
+        dest='announcement_json_path',
+        metavar='announcement_json_path',
+        type=str,
+        help='The file path to the json announcement contract',
         required=True
     )
     parser.add_argument(
@@ -71,11 +90,24 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting validator job")
 
-    # TODO: add interaction with Announcement smart contract
-    announcement = {
-        "n_fl_rounds": args.n_fl_rounds,
-        "global_model_path": args.global_model_path
-    }
+    # Client instance to interact with the blockchain
+    web3 = Web3(HTTPProvider(args.blockchain_address))
+    logger.info("Connected to the blockchain %s", args.blockchain_address)
+
+    # Path to the compiled contract JSON file
+    compiled_announcement_contract_path = args.announcement_json_path
+
+    with open(compiled_announcement_contract_path) as file:
+        contract_json = json.load(file)  # load contract info as JSON
+        contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
+
+    # Fetch deployed contract reference
+    contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
+    logger.info("Fetched contract %s", args.announcement_contract_address)
+
+    # extract the Announcement information from the smart contract
+    announcement = announcement_factory(args.validator_address, contract)
+
     # TODO: change the participant_ids with the relative attribute in the Announcement
     participant_ids = list(range(args.n_participants))
     aggregator = Aggregator(
