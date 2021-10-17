@@ -4,6 +4,7 @@ This script is a simple example for the local federated training in the dummy ML
 
 import argparse
 import json
+import os
 import sys
 import time
 
@@ -56,21 +57,11 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--local_dataset_path',
-        dest='local_dataset_path',
-        metavar='local_dataset_path',
+        '--task_name',
+        dest='task_name',
+        metavar='task_name',
         type=str,
-        help='The file path to local_dataset_path',
-        required=True
-    )
-    # TODO: this argument has to be removed when we implemented the communication between
-    #       validator and participants
-    parser.add_argument(
-        '--participant_directory_path',
-        dest='participant_directory_path',
-        metavar='participant_directory_path',
-        type=str,
-        help='The path to the participant directory',
+        help='The name of the task corresponding to the directory with all the files',
         required=True
     )
 
@@ -84,6 +75,18 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
+
+    participant_directory_path = os.path.join(
+        "data_sample",
+        args.task_name,
+        "participants",
+        "participant_" + str(args.participant_id)
+    )
+
+    local_dataset_path = os.path.join(
+        participant_directory_path,
+        args.task_name + "_" + str(args.participant_id) + ".csv"
+    )
 
     logger.info("Starting participant %d federated learning", args.participant_id)
 
@@ -110,9 +113,9 @@ if __name__ == '__main__':
     federated_local_trainer = FederatedLocalTrainer(
         args.participant_id,
         announcement,
-        args.local_dataset_path,
+        local_dataset_path,
         EPOCHS,
-        args.participant_directory_path
+        participant_directory_path
     )
     federated_local_trainer.fit_local_model(None)
 
