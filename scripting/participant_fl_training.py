@@ -17,7 +17,7 @@ from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 logger = create_logger(__name__)
 
 # TODO: actually we need to take both epochs and batch size from a configuration file (or the Announcement SC)
-EPOCHS = 5
+EPOCHS = 2
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

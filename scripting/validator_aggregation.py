@@ -40,11 +40,11 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--n_clients',
-        dest='n_clients',
-        metavar='n_clients',
+        '--n_participants',
+        dest='n_participants',
+        metavar='n_participants',
         type=int,
-        help='The number of clients',
+        help='The number of participants',
         required=True
     )
     parser.add_argument(
@@ -56,24 +56,24 @@ if __name__ == '__main__':
         required=True
     )
     # TODO: this argument has to be removed when we implemented the communication between
-    #       validator and clients
+    #       validator and participants
     parser.add_argument(
-        '--client_weights_path',
-        dest='client_weights_path',
-        metavar='client_weights_path',
+        '--participant_weights_path',
+        dest='participant_weights_path',
+        metavar='participant_weights_path',
         type=str,
         help="The directory path that contains the sub-directories for the "
-             "weights of the local trained clients' models",
+             "weights of the local trained participants' models",
         required=True
     )
 
     args = parser.parse_args()
     logger.info("Starting validator job")
 
-    # TODO: change the client_ids with the relative attribute in the Announcement
-    client_ids = list(range(args.n_clients))
+    # TODO: change the participant_ids with the relative attribute in the Announcement
+    participant_ids = list(range(args.n_participants))
     aggregator = Aggregator(
-        client_ids,
+        participant_ids,
         args.n_fl_rounds,
         args.global_model_path,
         args.test_set_path,
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     go_recursively = True
 
     validator_observer = Observer()
-    validator_observer.schedule(aggregator_handler, args.client_weights_path, recursive=True)
+    validator_observer.schedule(aggregator_handler, args.participant_weights_path, recursive=True)
     # start the observer
     logger.info("Starting the observer for the validator")
     validator_observer.start()

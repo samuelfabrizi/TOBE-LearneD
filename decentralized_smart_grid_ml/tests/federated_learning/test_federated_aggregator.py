@@ -176,6 +176,7 @@ class TestFederatedAggregator(unittest.TestCase):
         weighted_average_aggregation_mock.return_value = global_weights
         aggregator = Aggregator()
         aggregator.current_round = 0
+        aggregator.n_fl_rounds = 2
         aggregator.x_test = x_test
         aggregator.y_test = y_test
         aggregator.model_weights_new_round_path = model_weights_new_round_path
@@ -204,7 +205,7 @@ class TestFederatedAggregator(unittest.TestCase):
         )
         save_fl_model_weights_mock.assert_called_with(
             global_model_mock,
-            model_weights_new_round_path + "validator_weights_round_0.json",
+            model_weights_new_round_path + "validator_weights_round_1.json",
         )
         self.assertDictEqual(
             rounds2participants_expected,
@@ -212,4 +213,56 @@ class TestFederatedAggregator(unittest.TestCase):
         )
         self.assertEqual(1, aggregator.current_round)
 
+    @patch.object(pathlib.Path, 'mkdir')
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
+    @patch("tensorflow.keras.Sequential")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.save_fl_model_weights")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_update_global_model_final(self, aggregator_init_mock, save_fl_model_weights_mock,
+                                 global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
+        model_weights_new_round_path = "/path/to/new_model_weights/"
+        evaluation = ["0.8", "0.7"]
+        x_test = [[1, 2], [2, 3]]
+        y_test = [0, 1]
+        global_model_mock.evaluate.return_value = evaluation
+        global_weights = [2, 3]
+        weighted_average_aggregation_mock.return_value = global_weights
+        aggregator = Aggregator()
+        aggregator.current_round = 0
+        aggregator.n_fl_rounds = 1
+        aggregator.x_test = x_test
+        aggregator.y_test = y_test
+        aggregator.model_weights_new_round_path = model_weights_new_round_path
+        aggregator.rounds2participants = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1]
+            }
+        }
+        aggregator.global_model = global_model_mock
+        rounds2participants_expected = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+                "alpha": [0.5, 0.5],
+                "evaluation": evaluation
+            }
+        }
+        aggregator.update_global_model()
+        global_model_mock.set_weights.assert_called_with(global_weights)
+        global_model_mock.evaluate.assert_called_with(
+            x_test,
+            y_test
+        )
+        save_fl_model_weights_mock.assert_called_with(
+            global_model_mock,
+            model_weights_new_round_path + "validator_weights_final.json",
+        )
+        self.assertDictEqual(
+            rounds2participants_expected,
+            aggregator.rounds2participants
+        )
+        self.assertEqual(1, aggregator.current_round)
 

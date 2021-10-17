@@ -89,7 +89,7 @@ class FederatedLocalTrainer:
             output_folder = Path(self.local_model_weights_path)
             output_folder.mkdir(parents=True, exist_ok=True)
             self.rounds2history[self.current_round] = history
+            logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
-            logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
         return self.current_round == self.n_fl_rounds
