@@ -4,7 +4,6 @@ This script is a simple example for the local federated training in the dummy ML
 
 import argparse
 import json
-import os
 import time
 
 from web3 import HTTPProvider, Web3
@@ -121,12 +120,13 @@ if __name__ == '__main__':
         EPOCHS,
         args.client_directory_path
     )
+    federated_local_trainer.fit_local_model(None)
 
     participant_handler = ParticipantHandler(federated_local_trainer)
     participant_observer = Observer()
     participant_observer.schedule(participant_handler, args.validator_directory_path, recursive=True)
     # start the observer
-    logger.info("Starting the observer for the validator")
+    logger.info("Starting the observer for the participant %s", args.client_id)
     participant_observer.start()
     try:
         while True:
