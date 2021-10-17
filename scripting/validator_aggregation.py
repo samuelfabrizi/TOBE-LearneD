@@ -71,12 +71,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting validator job")
 
+    # TODO: add interaction with Announcement smart contract
+    announcement = {
+        "n_fl_rounds": args.n_fl_rounds,
+        "global_model_path": args.global_model_path
+    }
     # TODO: change the participant_ids with the relative attribute in the Announcement
     participant_ids = list(range(args.n_participants))
     aggregator = Aggregator(
         participant_ids,
-        args.n_fl_rounds,
-        args.global_model_path,
+        announcement,
         args.test_set_path,
         args.model_weights_new_round_path
     )

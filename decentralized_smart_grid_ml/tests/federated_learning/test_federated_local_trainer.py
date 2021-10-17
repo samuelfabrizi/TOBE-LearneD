@@ -13,8 +13,10 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_local_trainer.load_fl_model")
     def test_federated_local_trainer_constructor(self, load_fl_model_mock, read_csv_mock):
         participant_id = 0
-        n_fl_rounds = 2
-        global_model_path = "/path/to/model"
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         train_set_path = "/path/to/train.csv"
         n_epochs = 5
         local_model_weights_path = "/path/to/participant_directory"
@@ -31,14 +33,13 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         }
         flt = FederatedLocalTrainer(
             participant_id,
-            n_fl_rounds,
-            global_model_path,
+            announcement,
             train_set_path,
             n_epochs,
             local_model_weights_path
         )
         read_csv_mock.assert_called_with(train_set_path)
-        load_fl_model_mock.assert_called_with(global_model_path)
+        load_fl_model_mock.assert_called_with("/path/to/model")
         self.assertEqual(model_artifact, flt.local_model)
         self.assertEqual(0, flt.current_round)
         self.assertDictEqual(rounds2history_expected, flt.rounds2history)
@@ -54,7 +55,10 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     def test_fit_local_model_completed(self, federated_local_trainer_mock, load_fl_model_weights_mock,
                                        save_fl_model_weights_mock, local_model_mock, mkdir_mock):
         current_round = 1
-        n_fl_rounds = 2
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         path_file_created = "validator/validator_weights_round_1.json"
         baseline_model_weights = "baseline model weights"
         x_train = "train x"
@@ -76,7 +80,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         flt.current_round = current_round
         flt.local_model = local_model_mock
         flt.participant_id = 0
-        flt.n_fl_rounds = n_fl_rounds
+        flt.announcement = announcement
         flt.local_model_weights_path = local_model_weights_path
         flt.rounds2history = {
             0: None,
@@ -100,7 +104,10 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     def test_fit_local_model_not_completed(self, federated_local_trainer_mock, load_fl_model_weights_mock,
                                            save_fl_model_weights_mock, local_model_mock, mkdir_mock):
         current_round = 1
-        n_fl_rounds = 3
+        announcement = {
+            "n_fl_rounds": 3,
+            "global_model_path": "/path/to/model"
+        }
         path_file_created = "validator/validator_weights_round_1.json"
         baseline_model_weights = "baseline model weights"
         x_train = "train x"
@@ -123,7 +130,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         flt.current_round = current_round
         flt.local_model = local_model_mock
         flt.participant_id = 0
-        flt.n_fl_rounds = n_fl_rounds
+        flt.announcement = announcement
         flt.local_model_weights_path = local_model_weights_path
         flt.rounds2history = {
             0: None,
@@ -147,7 +154,10 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     def test_fit_local_model_first_round(self, federated_local_trainer_mock, save_fl_model_weights_mock,
                                          local_model_mock, mkdir_mock):
         current_round = 0
-        n_fl_rounds = 2
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         x_train = "train x"
         y_train = "train y"
         n_epochs = 5
@@ -166,7 +176,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         flt.current_round = current_round
         flt.local_model = local_model_mock
         flt.participant_id = 0
-        flt.n_fl_rounds = n_fl_rounds
+        flt.announcement = announcement
         flt.local_model_weights_path = local_model_weights_path
         flt.rounds2history = {
             0: None,
@@ -185,10 +195,14 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     )
     def test_fit_local_model_malformed_path(self, federated_local_trainer_mock):
         current_round = 1
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         path_file_created = "validator/validator_weights_round_null.json"
         flt = FederatedLocalTrainer()
         flt.current_round = current_round
-        flt.n_fl_rounds = 2
+        flt.announcement = announcement
         flt.participant_id = 0
         is_completed = flt.fit_local_model(path_file_created)
         self.assertEqual(False, is_completed)
@@ -199,10 +213,14 @@ class TestFederatedLocalTrainer(unittest.TestCase):
     )
     def test_fit_local_model_wront_round(self, federated_local_trainer_mock):
         current_round = 1
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         path_file_created = "validator/validator_weights_round_0.json"
         flt = FederatedLocalTrainer()
         flt.current_round = current_round
-        flt.n_fl_rounds = 2
+        flt.announcement = announcement
         flt.participant_id = 0
         is_completed = flt.fit_local_model(path_file_created)
         self.assertEqual(False, is_completed)

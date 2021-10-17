@@ -62,8 +62,11 @@ class TestFederatedAggregator(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model")
     def test_aggregator_constructor(self, load_fl_model_mock, read_csv_mock):
         participant_ids = [0, 1, 2]
-        n_fl_rounds = 2
         global_model_path = "/path/to/model"
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": global_model_path
+        }
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
@@ -87,8 +90,7 @@ class TestFederatedAggregator(unittest.TestCase):
         }
         aggregator = Aggregator(
             participant_ids,
-            n_fl_rounds,
-            global_model_path,
+            announcement,
             test_set_path,
             model_weights_new_round_path
         )
@@ -168,6 +170,10 @@ class TestFederatedAggregator(unittest.TestCase):
     def test_update_global_model(self, aggregator_init_mock, save_fl_model_weights_mock,
                                  global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
+        announcement = {
+            "n_fl_rounds": 2,
+            "global_model_path": "/path/to/model"
+        }
         evaluation = ["0.8", "0.7"]
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
@@ -176,7 +182,7 @@ class TestFederatedAggregator(unittest.TestCase):
         weighted_average_aggregation_mock.return_value = global_weights
         aggregator = Aggregator()
         aggregator.current_round = 0
-        aggregator.n_fl_rounds = 2
+        aggregator.announcement = announcement
         aggregator.x_test = x_test
         aggregator.y_test = y_test
         aggregator.is_finished = False
@@ -224,6 +230,10 @@ class TestFederatedAggregator(unittest.TestCase):
                                  global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         evaluation = ["0.8", "0.7"]
+        announcement = {
+            "n_fl_rounds": 1,
+            "global_model_path": "/path/to/model"
+        }
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
         global_model_mock.evaluate.return_value = evaluation
@@ -231,7 +241,7 @@ class TestFederatedAggregator(unittest.TestCase):
         weighted_average_aggregation_mock.return_value = global_weights
         aggregator = Aggregator()
         aggregator.current_round = 0
-        aggregator.n_fl_rounds = 1
+        aggregator.announcement = announcement
         aggregator.x_test = x_test
         aggregator.y_test = y_test
         aggregator.is_finished = False

@@ -10,6 +10,7 @@ from web3 import HTTPProvider, Web3
 
 from watchdog.observers import Observer
 
+from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -109,13 +110,11 @@ if __name__ == '__main__':
     logger.info("Fetched contract %s", args.announcement_contract_address)
 
     # extract the Announcement information from the smart contract
-    n_fl_rounds = contract.functions.flRound().call({"from": args.participant_address})
-    global_model_path = contract.functions.modelArtifact().call({"from": args.participant_address})
+    announcement = announcement_factory(args.participant_address, contract)
 
     federated_local_trainer = FederatedLocalTrainer(
         args.participant_id,
-        n_fl_rounds,
-        global_model_path,
+        announcement,
         args.local_dataset_path,
         EPOCHS,
         args.participant_directory_path
