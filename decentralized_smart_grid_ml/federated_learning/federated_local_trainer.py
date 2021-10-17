@@ -18,6 +18,16 @@ class FederatedLocalTrainer:
 
     def __init__(self, participant_id, n_fl_rounds, global_model_path,
                  train_set_path, epochs, local_model_weights_path):
+        """
+        Initialized the local trainer
+        :param participant_id: id of the participant
+        :param n_fl_rounds: number of federated rounds
+        :param global_model_path: directory path to the global baseline model
+        :param train_set_path: file path to the training set
+        :param epochs: number of epochs
+        :param local_model_weights_path: path to the directory that will contain the
+            local model's weights(one for each round)
+        """
         self.participant_id = participant_id
         self.n_fl_rounds = n_fl_rounds
         self.local_model = load_fl_model(global_model_path)
@@ -39,6 +49,13 @@ class FederatedLocalTrainer:
             self.rounds2history[idx_round] = None
 
     def fit_local_model(self, path_file_created):
+        """
+        Carries out the training of the local model for one round
+        :param path_file_created:   file path to the aggrgated model's weights for the current round
+                                    or None if the participant has to fit the model for the first time
+        :return:    True if the training of the last round is finished
+                    False otherwise
+        """
         history = None
         if path_file_created is not None:
             # try to load the aggregated new baseline model and start the local training

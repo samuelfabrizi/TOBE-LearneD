@@ -23,7 +23,7 @@ class ParticipantHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         """
-        Triggers an update in the aggregator
+        Triggers an update in the FederatedLocalTrainer
         :param event: event generated
         :return:
         """
