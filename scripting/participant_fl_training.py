@@ -4,6 +4,7 @@ This script is a simple example for the local federated training in the dummy ML
 
 import argparse
 import json
+import sys
 import time
 
 from web3 import HTTPProvider, Web3
@@ -36,14 +37,6 @@ if __name__ == '__main__':
         metavar='blockchain_address',
         type=str,
         help='The address of the blockchain',
-        required=True
-    )
-    parser.add_argument(
-        '--participant_address',
-        dest='participant_address',
-        metavar='participant_address',
-        type=str,
-        help='The address of the participant',
         required=True
     )
     parser.add_argument(
