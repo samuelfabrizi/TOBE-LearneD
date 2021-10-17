@@ -1,7 +1,6 @@
 """
 This script is a simple example for the local federated training in the dummy ML task
 """
-
 import argparse
 import json
 import os
