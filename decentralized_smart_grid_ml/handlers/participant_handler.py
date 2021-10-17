@@ -28,4 +28,5 @@ class ParticipantHandler(FileSystemEventHandler):
         :return:
         """
         logger.info("The file %s has been created", event.src_path)
-        self.federated_local_trainer.fit_local_model(event.src_path)
+        if self.federated_local_trainer.fit_local_model(event.src_path):
+            logger.info("The participant %s has terminated his work")

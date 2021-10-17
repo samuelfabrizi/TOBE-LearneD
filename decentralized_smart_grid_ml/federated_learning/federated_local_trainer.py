@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, load_fl_model_weights, \
-    save_fl_model_weights
+from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
+    load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -51,8 +51,9 @@ class FederatedLocalTrainer:
     def fit_local_model(self, path_file_created):
         """
         Carries out the training of the local model for one round
-        :param path_file_created:   file path to the aggrgated model's weights for the current round
-                                    or None if the participant has to fit the model for the first time
+        :param path_file_created:   file path to the aggregated model's weights
+                                    for the current round or None if the participant
+                                    has to fit the model for the first time
         :return:    True if the training of the last round is finished
                     False otherwise
         """
@@ -91,7 +92,4 @@ class FederatedLocalTrainer:
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
             logger.info("Client %s: end FL round %s", self.participant_id, self.current_round)
-        if self.current_round == self.n_fl_rounds:
-            return True
-        else:
-            return False
+        return self.current_round == self.n_fl_rounds
