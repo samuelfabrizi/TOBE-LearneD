@@ -5,11 +5,14 @@ This script is a simple example for the local federated training in the dummy ML
 import argparse
 import json
 import os
+import time
 
-import pandas as pd
 from web3 import HTTPProvider, Web3
 
-from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, save_fl_model_weights
+from watchdog.observers import Observer
+
+from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
+from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -78,6 +81,15 @@ if __name__ == '__main__':
         required=True
     )
 
+    parser.add_argument(
+        '--validator_directory_path',
+        dest='validator_directory_path',
+        metavar='validator_directory_path',
+        type=str,
+        help='The path to the directory that contains the aggregated baseline models for each round',
+        required=True
+    )
+
     args = parser.parse_args()
 
     logger.info("Starting client %d federated learning", args.client_id)
@@ -101,26 +113,25 @@ if __name__ == '__main__':
     n_fl_rounds = contract.functions.flRound().call({"from": args.participant_address})
     global_model_path = contract.functions.modelArtifact().call({"from": args.participant_address})
 
-    local_dataset = pd.read_csv(args.local_dataset_path)
-    logger.info("Client %d: dataset loaded from %s", args.client_id, args.local_dataset_path)
+    federated_local_trainer = FederatedLocalTrainer(
+        args.client_id,
+        n_fl_rounds,
+        global_model_path,
+        args.local_dataset_path,
+        EPOCHS,
+        args.client_directory_path
+    )
 
-    print(local_dataset.head())
-    # TODO: generalize this function to extract features and labels from the dataset
-    x, y = local_dataset[["x1", "x2"]].values, local_dataset["y"].values
-    fl_rounds_completed = [None for _ in range(n_fl_rounds)]
-    for idx_round in range(n_fl_rounds):
-        # TODO: here we need to wait that the validator has published the global baseline model
-        logger.info("Client %d: start FL round %d", args.client_id, idx_round)
-        # read the initial global model at the start of the FL round
-        local_model = load_fl_model(global_model_path)
-        history = local_model.fit(x, y, epochs=EPOCHS, shuffle=True)
-        # TODO: send the local model's weights at the end of the FL round
-        model_weights_path = os.path.join(
-            args.client_directory_path,
-            "weights_round_" + str(idx_round) + ".json"
-        )
-        save_fl_model_weights(local_model, model_weights_path)
-        fl_rounds_completed[idx_round] = history
-        logger.info("Client %d: end FL round %d", args.client_id, idx_round)
-    for round_res in fl_rounds_completed:
-        assert round_res is not None
+    participant_handler = ParticipantHandler(federated_local_trainer)
+    participant_observer = Observer()
+    participant_observer.schedule(participant_handler, args.validator_directory_path, recursive=True)
+    # start the observer
+    logger.info("Starting the observer for the validator")
+    participant_observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        # stop and join the observer
+        participant_observer.stop()
+        participant_observer.join()
