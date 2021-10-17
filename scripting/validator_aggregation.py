@@ -28,14 +28,6 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--validator_address',
-        dest='validator_address',
-        metavar='validator_address',
-        type=str,
-        help='The address of the validator',
-        required=True
-    )
-    parser.add_argument(
         '--announcement_contract_address',
         dest='announcement_contract_address',
         metavar='announcement_contract_address',
@@ -105,8 +97,10 @@ if __name__ == '__main__':
     contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
     logger.info("Fetched contract %s", args.announcement_contract_address)
 
+    # automatically takes the last address
+    validator_address = web3.eth.accounts[-1]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(args.validator_address, contract)
+    announcement = announcement_factory(validator_address, contract)
 
     # TODO: change the participant_ids with the relative attribute in the Announcement
     participant_ids = list(range(args.n_participants))

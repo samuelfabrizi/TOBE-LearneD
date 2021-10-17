@@ -109,8 +109,10 @@ if __name__ == '__main__':
     contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
     logger.info("Fetched contract %s", args.announcement_contract_address)
 
+    # automatically takes the idx + 1address
+    participant_address = web3.eth.accounts[args.participant_id + 1]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(args.participant_address, contract)
+    announcement = announcement_factory(participant_address, contract)
 
     federated_local_trainer = FederatedLocalTrainer(
         args.participant_id,

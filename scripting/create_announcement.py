@@ -27,14 +27,6 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--manufacturer_address',
-        dest='manufacturer_address',
-        metavar='manufacturer_address',
-        type=str,
-        help='The address of the manufacturer',
-        required=True
-    )
-    parser.add_argument(
         '--announcement_contract_address',
         dest='announcement_contract_address',
         metavar='announcement_contract_address',
@@ -157,6 +149,8 @@ if __name__ == '__main__':
     # Fetch deployed contract reference
     contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
     logger.info("Fetched contract %s", args.announcement_contract_address)
+    # automatically takes the first address
+    manufacturer_address = web3.eth.accounts[0]
     # Call contract function (this is not persisted to the blockchain)
     contract.functions.initialize(
         args.task_name.encode('utf-8'),
@@ -167,5 +161,5 @@ if __name__ == '__main__':
         args.model_weights,
         args.features_names,
         args.fl_rounds
-    ).transact({'from': args.manufacturer_address})
+    ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
