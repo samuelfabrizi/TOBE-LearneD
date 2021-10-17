@@ -39,6 +39,7 @@ class FederatedLocalTrainer:
         self.rounds2history = {}
         self._initialize_rounds2history()
         self.current_round = 0
+        self.is_finished = False
 
     def _initialize_rounds2history(self):
         """
@@ -92,4 +93,5 @@ class FederatedLocalTrainer:
             logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
-        return self.current_round == self.n_fl_rounds
+        self.is_finished = self.current_round == self.n_fl_rounds
+        return self.is_finished

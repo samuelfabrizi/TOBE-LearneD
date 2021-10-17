@@ -85,6 +85,7 @@ class Aggregator:
         self._initialize_rounds2participants()
         self.current_round = 0
         self.model_weights_new_round_path = model_weights_new_round_path
+        self.is_finished = False
 
     def _initialize_rounds2participants(self):
         """
@@ -205,6 +206,7 @@ class Aggregator:
                 self.model_weights_new_round_path,
                 "validator_weights_final.json"
             )
+            self.is_finished = True
         else:
             baseline_file_name = os.path.join(
                 self.model_weights_new_round_path,

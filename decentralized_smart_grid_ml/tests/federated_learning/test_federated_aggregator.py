@@ -179,6 +179,7 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator.n_fl_rounds = 2
         aggregator.x_test = x_test
         aggregator.y_test = y_test
+        aggregator.is_finished = False
         aggregator.model_weights_new_round_path = model_weights_new_round_path
         aggregator.rounds2participants = {
             0: {
@@ -212,6 +213,7 @@ class TestFederatedAggregator(unittest.TestCase):
             aggregator.rounds2participants
         )
         self.assertEqual(1, aggregator.current_round)
+        self.assertEqual(False, aggregator.is_finished)
 
     @patch.object(pathlib.Path, 'mkdir')
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
@@ -232,6 +234,7 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator.n_fl_rounds = 1
         aggregator.x_test = x_test
         aggregator.y_test = y_test
+        aggregator.is_finished = False
         aggregator.model_weights_new_round_path = model_weights_new_round_path
         aggregator.rounds2participants = {
             0: {
@@ -265,4 +268,4 @@ class TestFederatedAggregator(unittest.TestCase):
             aggregator.rounds2participants
         )
         self.assertEqual(1, aggregator.current_round)
-
+        self.assertEqual(True, aggregator.is_finished)

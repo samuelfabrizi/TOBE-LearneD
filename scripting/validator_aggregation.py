@@ -2,6 +2,7 @@
 This script runs the Federate Learning life cycle of the validator
 """
 import argparse
+import sys
 import time
 
 from watchdog.observers import Observer
@@ -89,9 +90,11 @@ if __name__ == '__main__':
     logger.info("Starting the observer for the validator")
     validator_observer.start()
     try:
-        while True:
+        while not aggregator.is_finished:
             time.sleep(1)
     except KeyboardInterrupt:
         # stop and join the observer
         validator_observer.stop()
         validator_observer.join()
+    logger.info("The validator terminated his work with success")
+    sys.exit(0)
