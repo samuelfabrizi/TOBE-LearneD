@@ -1,14 +1,14 @@
 """
 This script is a simple utility to split a given dataset so that it is possible to simulate the framework.
 First of all, it extracts the test set for the validator. Then, it splits the remaining dataset according
-to the number of clients.
+to the number of participants.
 """
 import argparse
 import os
 from pathlib import Path
 
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_validator_clients
+from decentralized_smart_grid_ml.utils.fl_utility import split_dataset_validator_participants
 
 logger = create_logger(__name__)
 
@@ -32,11 +32,11 @@ if __name__ == '__main__':
         default=0.2
     )
     parser.add_argument(
-        '--n_clients',
-        dest='n_clients',
-        metavar='n_clients',
+        '--n_participants',
+        dest='n_participants',
+        metavar='n_participants',
         type=int,
-        help='The number of clients',
+        help='The number of participants',
         required=True
     )
     parser.add_argument(
@@ -65,27 +65,27 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     logger.info("Starting dataset split script")
-    dataset_test, datasets_clients = split_dataset_validator_clients(
+    dataset_test, datasets_participants = split_dataset_validator_participants(
         args.dataset_path,
-        args.n_clients,
+        args.n_participants,
         args.test_size,
         random_state=args.random_state,
         shuffle=args.shuffle
     )
     dataset_name = Path(args.dataset_path).stem
-    # store the clients' local datasets
-    for idx_client, dataset_client in enumerate(datasets_clients):
-        directory_client = os.path.join(
+    # store the participants' local datasets
+    for idx_participant, dataset_participant in enumerate(datasets_participants):
+        directory_participant = os.path.join(
             args.ml_task_directory_path,
-            "clients/client_" + str(idx_client)
+            "participants/participant_" + str(idx_participant)
         )
-        Path(directory_client).mkdir(parents=True, exist_ok=True)
-        dataset_client_path = os.path.join(
-            directory_client,
-            dataset_name + "_" + str(idx_client) + ".csv"
+        Path(directory_participant).mkdir(parents=True, exist_ok=True)
+        dataset_participant_path = os.path.join(
+            directory_participant,
+            dataset_name + "_" + str(idx_participant) + ".csv"
         )
-        dataset_client.to_csv(str(dataset_client_path))
-        logger.info("Dataset client %d saved in %s", idx_client, dataset_client_path)
+        dataset_participant.to_csv(str(dataset_participant_path))
+        logger.info("Dataset participant %d saved in %s", idx_participant, dataset_participant_path)
 
     directory_validator = os.path.join(
         args.ml_task_directory_path,

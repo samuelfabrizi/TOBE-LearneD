@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from decentralized_smart_grid_ml.exceptions import NotValidClientsModelsError, \
+from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
     load_fl_model_weights, save_fl_model_weights
@@ -22,8 +22,8 @@ def _index_in_list(a_list, index):
 
 def weighted_average_aggregation(models_weights, alpha):
     """
-    Computes the weighted average of the clients' weights according to a given probability vector
-    :param models_weights: weights of the clients' models
+    Computes the weighted average of the participants' weights according to a given probability vector
+    :param models_weights: weights of the participants' models
     :param alpha: probability vector for the weighted average
     :return: weighted average of weights
     """
@@ -31,32 +31,32 @@ def weighted_average_aggregation(models_weights, alpha):
         logger.error("The vector alpha is not valid %s", alpha)
         raise NotValidAlphaVectorError("Error in the alpha vector")
     if len(models_weights) != len(alpha):
-        logger.error("The number of clients' weights (%d) and the vector alpha cardinality (%d) "
+        logger.error("The number of participants' weights (%d) and the vector alpha cardinality (%d) "
                      "does not correspond", len(models_weights), len(alpha))
-        raise NotValidClientsModelsError("Error in the number of weights and/or alpha cardinality")
-    logger.info("Start models' weights aggregation of %d clients", len(alpha))
+        raise NotValidParticipantsModelsError("Error in the number of weights and/or alpha cardinality")
+    logger.info("Start models' weights aggregation of %d participants", len(alpha))
     aggregated_weights = []
-    for idx_client, local_weights in enumerate(models_weights):
+    for idx_participant, local_weights in enumerate(models_weights):
         for idx_layer, local_layer_weights in enumerate(local_weights):
             if not _index_in_list(aggregated_weights, idx_layer):
-                aggregated_layer_weights = local_layer_weights * alpha[idx_client]
+                aggregated_layer_weights = local_layer_weights * alpha[idx_participant]
                 aggregated_weights.append(aggregated_layer_weights)
             else:
                 if aggregated_weights[idx_layer].shape != local_layer_weights.shape:
                     logger.error(
-                        "The shape of the layer %d, client %d "
+                        "The shape of the layer %d, participant %d "
                         "does not correspond to the layer shape of the global model: %s != %s",
                         idx_layer,
-                        idx_client,
+                        idx_participant,
                         local_layer_weights.shape,
                         aggregated_weights[idx_layer].shape
                     )
-                    raise NotValidClientsModelsError
+                    raise NotValidParticipantsModelsError
                 aggregated_weights[idx_layer] = \
                     aggregated_weights[idx_layer] + \
-                    local_layer_weights * alpha[idx_client]
-            logger.debug("Update layer %d related to client %d", idx_layer, idx_client)
-    logger.info("Finish models' weights aggregation of %d clients", len(alpha))
+                    local_layer_weights * alpha[idx_participant]
+            logger.debug("Update layer %d related to participant %d", idx_layer, idx_participant)
+    logger.info("Finish models' weights aggregation of %d participants", len(alpha))
     return aggregated_weights
 
 
@@ -93,7 +93,7 @@ class Aggregator:
         """
         for idx_round in range(self.n_fl_rounds):
             self.rounds2participants[idx_round] = {
-                # TODO: takes a subset of the client ids at each round
+                # TODO: takes a subset of the participant ids at each round
                 "valid_participant_ids": self.participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
@@ -115,7 +115,7 @@ class Aggregator:
     def add_participant_weights(self, path_file_created):
         """
         Adds the local weights (if valid) of a participant (if valid) in the current round
-        :param path_file_created: file path to the local model's weights of the client
+        :param path_file_created: file path to the local model's weights of the participant
         :return:    True if all the participant already publish their local model's weights
                     False otherwise
         """

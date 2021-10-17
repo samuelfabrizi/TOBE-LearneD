@@ -17,7 +17,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         global_model_path = "/path/to/model"
         train_set_path = "/path/to/train.csv"
         n_epochs = 5
-        local_model_weights_path = "/path/to/client_directory"
+        local_model_weights_path = "/path/to/participant_directory"
         read_csv_mock.return_value = pd.DataFrame({
             "x1": [0, 1],
             "x2": [1, 2],
@@ -60,7 +60,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         x_train = "train x"
         y_train = "train y"
         n_epochs = 5
-        local_model_weights_path = "clients/client_0/"
+        local_model_weights_path = "participants/participant_0/"
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         load_fl_model_weights_mock.return_value = baseline_model_weights
         expected_history = "history 1"
@@ -106,7 +106,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         x_train = "train x"
         y_train = "train y"
         n_epochs = 5
-        local_model_weights_path = "clients/client_0/"
+        local_model_weights_path = "participants/participant_0/"
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         load_fl_model_weights_mock.return_value = baseline_model_weights
         expected_history = "history 1"
@@ -151,7 +151,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         x_train = "train x"
         y_train = "train y"
         n_epochs = 5
-        local_model_weights_path = "clients/client_0/"
+        local_model_weights_path = "participants/participant_0/"
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         expected_history = "history 1"
         rounds2history_expected = {

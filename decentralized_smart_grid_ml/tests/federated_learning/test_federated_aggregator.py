@@ -5,7 +5,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from decentralized_smart_grid_ml.exceptions import NotValidAlphaVectorError, NotValidClientsModelsError
+from decentralized_smart_grid_ml.exceptions import NotValidAlphaVectorError, NotValidParticipantsModelsError
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import weighted_average_aggregation, Aggregator
 
 
@@ -17,12 +17,12 @@ class TestFederatedAggregator(unittest.TestCase):
         with self.assertRaises(NotValidAlphaVectorError):
             weighted_average_aggregation([], alpha)
 
-    def test_weighted_average_aggregation_error_clients_number(self):
+    def test_weighted_average_aggregation_error_participants_number(self):
         # sum(alpha) = 1, ok
         alpha = [0.1, 0.2, 0.7]
         # empty list for the sake of simplicity
         list_weights = [[], [], [], []]
-        with self.assertRaises(NotValidClientsModelsError):
+        with self.assertRaises(NotValidParticipantsModelsError):
             weighted_average_aggregation(list_weights, alpha)
 
     def test_weighted_average_aggregation(self):
@@ -55,13 +55,13 @@ class TestFederatedAggregator(unittest.TestCase):
             np.array([3, 4]),    # different shape w.r.t w1[0]
             np.array([6, 7]),
         ]
-        with self.assertRaises(NotValidClientsModelsError):
+        with self.assertRaises(NotValidParticipantsModelsError):
             weighted_average_aggregation([w1, w2], alpha)
 
     @patch("pandas.read_csv")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model")
     def test_aggregator_constructor(self, load_fl_model_mock, read_csv_mock):
-        client_ids = [0, 1, 2]
+        participant_ids = [0, 1, 2]
         n_fl_rounds = 2
         global_model_path = "/path/to/model"
         test_set_path = "/path/to/test.csv"
@@ -75,18 +75,18 @@ class TestFederatedAggregator(unittest.TestCase):
         load_fl_model_mock.return_value = model_artifact
         rounds2participants_expected = {
             0: {
-                "valid_participant_ids": client_ids,
+                "valid_participant_ids": participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
             },
             1: {
-                "valid_participant_ids": client_ids,
+                "valid_participant_ids": participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
             }
         }
         aggregator = Aggregator(
-            client_ids,
+            participant_ids,
             n_fl_rounds,
             global_model_path,
             test_set_path,
@@ -99,8 +99,8 @@ class TestFederatedAggregator(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_add_participant_weights(self, aggregator_init_mock, load_fl_model_weights_mock):
-        # simulate correct file path for client 0, round 0
-        path_file_created = "/clients/client_0/weights_round_0.json"
+        # simulate correct file path for participant 0, round 0
+        path_file_created = "/participants/participant_0/weights_round_0.json"
         load_fl_model_weights_mock.return_value = [1, 2]
         aggregator = Aggregator()
         aggregator.current_round = 0
@@ -126,7 +126,7 @@ class TestFederatedAggregator(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_add_participant_weights_wrong_round(self, aggregator_init_mock):
         # simulate wrong file path for not existing round 1
-        path_file_created = "/clients/client_0/weights_round_1.json"
+        path_file_created = "/participants/participant_0/weights_round_1.json"
         aggregator = Aggregator()
         aggregator.current_round = 0
         is_completed = aggregator.add_participant_weights(path_file_created)
@@ -134,14 +134,14 @@ class TestFederatedAggregator(unittest.TestCase):
 
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
-    def test_add_participant_weights_wrong_client_id(self, aggregator_init_mock, load_fl_model_weights_mock):
-        # simulate wrong file path for not existing client 1
-        path_file_created = "/clients/client_1/weights_round_0.json"
+    def test_add_participant_weights_wrong_participant_id(self, aggregator_init_mock, load_fl_model_weights_mock):
+        # simulate wrong file path for not existing participant 1
+        path_file_created = "/participants/participant_1/weights_round_0.json"
         aggregator = Aggregator()
         aggregator.current_round = 0
         aggregator.rounds2participants = {
             0: {
-                # the client id 1 is not present in the valid ones
+                # the participant id 1 is not present in the valid ones
                 "valid_participant_ids": [0],
                 "participant_weights": [],
                 "participant_ids": []
@@ -153,8 +153,8 @@ class TestFederatedAggregator(unittest.TestCase):
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.load_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_add_participant_weights_wrong_malformed_path(self, aggregator_init_mock, load_fl_model_weights_mock):
-        # simulate wrong file path for not existing client 1
-        path_file_created = "/clients/weights_round_0.json"
+        # simulate wrong file path for not existing participant 1
+        path_file_created = "/participants/weights_round_0.json"
         aggregator = Aggregator()
         aggregator.current_round = 0
         is_completed = aggregator.add_participant_weights(path_file_created)

@@ -11,7 +11,7 @@ class IncorrectExtensionFileError(DecentralizedSmartGridML):
     """ This exception arises when a file path has an incorrect extension """
 
 
-class NotValidClientsModelsError(DecentralizedSmartGridML):
+class NotValidParticipantsModelsError(DecentralizedSmartGridML):
     """ This exception arises when the clients' models do not correspond
     with what is required """
 

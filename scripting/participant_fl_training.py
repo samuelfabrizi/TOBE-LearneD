@@ -22,11 +22,11 @@ EPOCHS = 5
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--client_id',
-        dest='client_id',
-        metavar='client_id',
+        '--participant_id',
+        dest='participant_id',
+        metavar='participant_id',
         type=int,
-        help='The client identifier',
+        help='The participant identifier',
         required=True
     )
     parser.add_argument(
@@ -70,13 +70,13 @@ if __name__ == '__main__':
         required=True
     )
     # TODO: this argument has to be removed when we implemented the communication between
-    #       validator and clients
+    #       validator and participants
     parser.add_argument(
-        '--client_directory_path',
-        dest='client_directory_path',
-        metavar='client_directory_path',
+        '--participant_directory_path',
+        dest='participant_directory_path',
+        metavar='participant_directory_path',
         type=str,
-        help='The path to the client directory',
+        help='The path to the participant directory',
         required=True
     )
 
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logger.info("Starting client %d federated learning", args.client_id)
+    logger.info("Starting participant %d federated learning", args.participant_id)
 
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(args.blockchain_address))
@@ -113,12 +113,12 @@ if __name__ == '__main__':
     global_model_path = contract.functions.modelArtifact().call({"from": args.participant_address})
 
     federated_local_trainer = FederatedLocalTrainer(
-        args.client_id,
+        args.participant_id,
         n_fl_rounds,
         global_model_path,
         args.local_dataset_path,
         EPOCHS,
-        args.client_directory_path
+        args.participant_directory_path
     )
     federated_local_trainer.fit_local_model(None)
 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     participant_observer = Observer()
     participant_observer.schedule(participant_handler, args.validator_directory_path, recursive=True)
     # start the observer
-    logger.info("Starting the observer for the participant %s", args.client_id)
+    logger.info("Starting the observer for the participant %s", args.participant_id)
     participant_observer.start()
     try:
         while True:

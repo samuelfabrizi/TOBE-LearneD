@@ -91,5 +91,5 @@ class FederatedLocalTrainer:
             self.rounds2history[self.current_round] = history
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
-            logger.info("Client %s: end FL round %s", self.participant_id, self.current_round)
+            logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
         return self.current_round == self.n_fl_rounds
