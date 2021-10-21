@@ -29,7 +29,10 @@ def split_dataset_validator_participants(dataset_path, n_participants, test_size
         logger.error("The file path %s is not a csv file", dataset_path)
         raise IncorrectExtensionFileError("Error in the file extension, csv is required")
     if n_participants <= 0:
-        logger.error("The number of participants provided is not valid: %d is not > 0", n_participants)
+        logger.error(
+            "The number of participants provided is not valid: %d is not > 0",
+            n_participants
+        )
         raise ValueError("The number of participants must be a positive integer")
     if test_size <= 0:
         logger.error("The test size provided is not valid: %f is not > 0", test_size)
@@ -49,5 +52,7 @@ def split_dataset_validator_participants(dataset_path, n_participants, test_size
         if i == (n_participants - 1):
             participants_datasets.append(df_dataset_participants.iloc[i*chunk_size:])
         else:
-            participants_datasets.append(df_dataset_participants.iloc[chunk_size*i:chunk_size*(i+1)])
+            participants_datasets.append(
+                df_dataset_participants.iloc[chunk_size*i:chunk_size*(i+1)]
+            )
     return df_dataset_test, participants_datasets
