@@ -162,13 +162,15 @@ class TestFederatedAggregator(unittest.TestCase):
         is_completed = aggregator.add_participant_weights(path_file_created)
         self.assertEqual(False, is_completed)
 
+    @patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.softmax')
     @patch.object(pathlib.Path, 'mkdir')
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
     @patch("tensorflow.keras.Sequential")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.save_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_update_global_model(self, aggregator_init_mock, save_fl_model_weights_mock,
-                                 global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
+                                 global_model_mock, weighted_average_aggregation_mock,
+                                 mkdir_mock, softmax_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         announcement = {
             "n_fl_rounds": 2,
@@ -177,6 +179,7 @@ class TestFederatedAggregator(unittest.TestCase):
         evaluation = ["0.8", "0.7"]
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
+        softmax_mock.return_value = [0.5, 0.5]
         global_model_mock.evaluate.return_value = evaluation
         global_weights = [2, 3]
         weighted_average_aggregation_mock.return_value = global_weights
@@ -221,13 +224,15 @@ class TestFederatedAggregator(unittest.TestCase):
         self.assertEqual(1, aggregator.current_round)
         self.assertEqual(False, aggregator.is_finished)
 
+    @patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.softmax')
     @patch.object(pathlib.Path, 'mkdir')
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
     @patch("tensorflow.keras.Sequential")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.save_fl_model_weights")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
     def test_update_global_model_final(self, aggregator_init_mock, save_fl_model_weights_mock,
-                                 global_model_mock, weighted_average_aggregation_mock, mkdir_mock):
+                                       global_model_mock, weighted_average_aggregation_mock,
+                                       mkdir_mock, softmax_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         evaluation = ["0.8", "0.7"]
         announcement = {
@@ -236,6 +241,7 @@ class TestFederatedAggregator(unittest.TestCase):
         }
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
+        softmax_mock.return_value = [0.5, 0.5]
         global_model_mock.evaluate.return_value = evaluation
         global_weights = [2, 3]
         weighted_average_aggregation_mock.return_value = global_weights

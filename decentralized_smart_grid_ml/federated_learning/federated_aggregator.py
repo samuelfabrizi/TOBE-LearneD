@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import pandas as pd
+from scipy.special import softmax
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
@@ -22,18 +23,23 @@ def _index_in_list(a_list, index):
 
 def weighted_average_aggregation(models_weights, alpha):
     """
-    Computes the weighted average of the participants' weights according to a given probability vector
+    Computes the weighted average of the participants' weights
+    according to a given probability vector
     :param models_weights: weights of the participants' models
     :param alpha: probability vector for the weighted average
     :return: weighted average of weights
     """
-    if sum(alpha) != 1:
+    if round(sum(alpha), 2) != 1:
         logger.error("The vector alpha is not valid %s", alpha)
         raise NotValidAlphaVectorError("Error in the alpha vector")
     if len(models_weights) != len(alpha):
-        logger.error("The number of participants' weights (%d) and the vector alpha cardinality (%d) "
-                     "does not correspond", len(models_weights), len(alpha))
-        raise NotValidParticipantsModelsError("Error in the number of weights and/or alpha cardinality")
+        logger.error(
+            "The number of participants' weights (%d) and the vector alpha cardinality (%d) "
+            "does not correspond", len(models_weights), len(alpha)
+        )
+        raise NotValidParticipantsModelsError(
+            "Error in the number of weights and/or alpha cardinality"
+        )
     logger.info("Start models' weights aggregation of %d participants", len(alpha))
     aggregated_weights = []
     for idx_participant, local_weights in enumerate(models_weights):
@@ -163,12 +169,16 @@ class Aggregator:
         :param participant_ids: participants' identifier (one for each participant in this round)
         :return: vector of the contribution
         """
-        n_participants = len(participant_ids)
-        # TODO: implement the mechanism to compute the actual participants' contribution
-        alpha = [1.0 / n_participants for _ in range(n_participants)]
+
+        evaluation_participants = []
+        for model_weight in models_weights:
+            self.global_model.set_weights(model_weight)
+            evaluation_participants.append(self.global_model.evaluate(self.x_test, self.y_test)[1])
+        alpha = softmax(evaluation_participants)
+
         logger.info(
-            "Alpha vector for round %d is %s",
-            self.current_round, alpha
+            "Alpha vector for round %d is %s relative to participant ids %s",
+            self.current_round, alpha, participant_ids
         )
         return alpha
 
