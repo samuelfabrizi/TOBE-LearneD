@@ -15,6 +15,8 @@ def announcement_factory(user_address, contract_instance):
     """
     announcement = {
         "n_fl_rounds": contract_instance.functions.flRound().call({"from": user_address}),
-        "global_model_path": contract_instance.functions.modelArtifact().call({"from": user_address})
+        "global_model_path": contract_instance.functions.modelArtifact().call(
+            {"from": user_address}
+        )
     }
     return announcement
