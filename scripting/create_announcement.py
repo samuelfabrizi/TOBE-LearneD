@@ -43,67 +43,11 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--task_name',
-        dest='task_name',
-        metavar='task_name',
+        '--task_config_path',
+        dest='task_config_path',
+        metavar='task_config_path',
         type=str,
-        help='The name of the task',
-        required=True
-    )
-    parser.add_argument(
-        '--task_description',
-        dest='task_description',
-        metavar='task_description',
-        type=str,
-        help='The description of the task',
-        required=True
-    )
-    parser.add_argument(
-        '--task_deadline',
-        dest='task_deadline',
-        metavar='task_deadline',
-        type=int,
-        help='The deadline of the task',
-        required=True
-    )
-    parser.add_argument(
-        '--model_artifact',
-        dest='model_artifact',
-        metavar='model_artifact',
-        type=str,
-        help='The directory path to the whole model (both config and weights)',
-        required=True
-    )
-    parser.add_argument(
-        '--model_config',
-        dest='model_config',
-        metavar='model_config',
-        type=str,
-        help="The file path to model's config",
-        required=True
-    )
-    parser.add_argument(
-        '--model_weights',
-        dest='model_weights',
-        metavar='model_weights',
-        type=str,
-        help="The file path to model's config",
-        required=True
-    )
-    parser.add_argument(
-        '--features_names',
-        dest='features_names',
-        metavar='features_names',
-        type=str,
-        help="The file path to features names",
-        required=True
-    )
-    parser.add_argument(
-        '--fl_rounds',
-        dest='fl_rounds',
-        metavar='fl_rounds',
-        type=int,
-        help='The number of federated rounds',
+        help="File path to the announcement's configuration file",
         required=True
     )
     parser.add_argument(
@@ -129,11 +73,11 @@ if __name__ == '__main__':
     logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
 
     # save the model's artifact
-    save_fl_model(model, args.model_artifact)
+    save_fl_model(model, model_artifact)
     # save the model's config
-    save_fl_model_config(model, args.model_config)
+    save_fl_model_config(model, model_config)
     # save the model's weights
-    save_fl_model_weights(model, args.model_weights)
+    save_fl_model_weights(model, model_weights)
 
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(args.blockchain_address))
@@ -153,13 +97,13 @@ if __name__ == '__main__':
     manufacturer_address = web3.eth.accounts[0]
     # Call contract function (this is not persisted to the blockchain)
     contract.functions.initialize(
-        args.task_name.encode('utf-8'),
-        args.task_description.encode('utf-8'),
-        args.task_deadline,
-        args.model_artifact,
-        args.model_config,
-        args.model_weights,
-        args.features_names,
-        args.fl_rounds
+        task_name.encode('utf-8'),
+        task_description.encode('utf-8'),
+        task_deadline,
+        model_artifact,
+        model_config,
+        model_weights,
+        features_names,
+        fl_rounds
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
