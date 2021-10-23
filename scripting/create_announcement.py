@@ -11,6 +11,7 @@ from tensorflow.keras.experimental import LinearModel
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import save_fl_model, save_fl_model_config, \
     save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH
 
 logger = create_logger(__name__)
 
@@ -80,11 +81,11 @@ if __name__ == '__main__':
     save_fl_model_weights(model, model_weights)
 
     # Client instance to interact with the blockchain
-    web3 = Web3(HTTPProvider(args.blockchain_address))
-    logger.info("Connected to the blockchain %s", args.blockchain_address)
+    web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
+    logger.info("Connected to the blockchain %s", BLOCKCHAIN_ADDRESS)
 
     # Path to the compiled contract JSON file
-    compiled_announcement_contract_path = args.announcement_json_path
+    compiled_announcement_contract_path = ANNOUNCEMENT_JSON_PATH
 
     with open(compiled_announcement_contract_path) as file:
         contract_json = json.load(file)  # load contract info as JSON
