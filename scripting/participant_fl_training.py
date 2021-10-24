@@ -15,13 +15,21 @@ from decentralized_smart_grid_ml.contract_interactions.announcement_configuratio
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_address_contract
 
 logger = create_logger(__name__)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--contract_info_path',
+        dest='contract_info_path',
+        metavar='contract_info_path',
+        type=str,
+        help="File path to the json file that contains announcement's contract information",
+        required=True
+    )
     parser.add_argument(
         '--participant_id',
         dest='participant_id',
@@ -30,15 +38,6 @@ if __name__ == '__main__':
         help='The participant identifier',
         required=True
     )
-    parser.add_argument(
-        '--announcement_contract_address',
-        dest='announcement_contract_address',
-        metavar='announcement_contract_address',
-        type=str,
-        help='The address of the announcement contract',
-        required=True
-    )
-
     parser.add_argument(
         '--validator_directory_path',
         dest='validator_directory_path',
@@ -49,20 +48,9 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-
-    participant_directory_path = os.path.join(
-        "data_sample",
-        args.task_name,
-        "participants",
-        "participant_" + str(args.participant_id)
-    )
-
-    local_dataset_path = os.path.join(
-        participant_directory_path,
-        args.task_name + "_" + str(args.participant_id) + ".csv"
-    )
-
     logger.info("Starting participant %d federated learning", args.participant_id)
+
+    contract_address = get_address_contract(args.contract_info_path)
 
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
@@ -73,14 +61,26 @@ if __name__ == '__main__':
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
     # Fetch deployed contract reference
-    contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
-    logger.info("Fetched contract %s", args.announcement_contract_address)
+    contract = web3.eth.contract(address=contract_address, abi=contract_abi)
+    logger.info("Fetched contract %s", contract_address)
 
     # automatically takes the idx + 1address
     participant_address = web3.eth.accounts[args.participant_id + 1]
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
         participant_address, contract
+    )
+
+    participant_directory_path = os.path.join(
+        "data_sample",
+        announcement_configuration.task_name,
+        "participants",
+        "participant_" + str(args.participant_id)
+    )
+
+    local_dataset_path = os.path.join(
+        participant_directory_path,
+        announcement_configuration.task_name + "_" + str(args.participant_id) + ".csv"
     )
 
     federated_local_trainer = FederatedLocalTrainer(
