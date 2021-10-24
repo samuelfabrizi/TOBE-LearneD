@@ -3,13 +3,7 @@ from unittest.mock import MagicMock, patch, mock_open
 
 from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import AnnouncementConfiguration
 
-
-class TestAnnouncementConfiguration(unittest.TestCase):
-
-    @patch("json.load")
-    def test_retrieve_announcement_configuration(self, json_load_mock):
-        m_o = mock_open()
-        json_config = {
+json_config = {
             "task_name": "test name",
             "task_description": "test description",
             "baseline_model_artifact": "test artifact",
@@ -19,6 +13,13 @@ class TestAnnouncementConfiguration(unittest.TestCase):
             "fl_rounds": 2,
             "epochs": 2,
         }
+
+
+class TestAnnouncementConfiguration(unittest.TestCase):
+
+    @patch("json.load")
+    def test_retrieve_announcement_configuration(self, json_load_mock):
+        m_o = mock_open()
         config_path = "/test/config/path.json"
         fake_address = "address test"
         json_load_mock.return_value = json_config
@@ -39,15 +40,21 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)
 
-    @patch("json.dump")
-    def test_write_json_config(self, json_dump_mock):
+    @patch("json.load")
+    def test_write_json_config(self, json_load_mock):
         m_o = mock_open()
-        output_path = "/path/to/config.json"
-        announcement_config = AnnouncementConfiguration(None, None, None, None, None, None, None, None)
-        json_file = {"json": "test"}
-        announcement_config.__dict__ = json_file
+        config_path = "/path/to/config.json"
+        json_load_mock.return_value = json_config
         with patch("decentralized_smart_grid_ml.contract_interactions.announcement_configuration.open", m_o):
-            announcement_config.write_json_config(output_path)
-        m_o.assert_called_with(output_path, "w")
+            announcement_config = AnnouncementConfiguration.read_json_config(config_path)
+        m_o.assert_called_with(config_path, "r")
         handle = m_o()
-        json_dump_mock.assert_called_with(json_file, handle, indent="\t")
+        json_load_mock.assert_called_with(handle)
+        self.assertEqual("test name", announcement_config.task_name)
+        self.assertEqual("test description", announcement_config.task_description)
+        self.assertEqual("test artifact", announcement_config.baseline_model_artifact)
+        self.assertEqual("test weights", announcement_config.baseline_model_weights)
+        self.assertEqual("test config", announcement_config.baseline_model_config)
+        self.assertEqual("test features", announcement_config.features_names)
+        self.assertEqual(2, announcement_config.fl_rounds)
+        self.assertEqual(2, announcement_config.epochs)

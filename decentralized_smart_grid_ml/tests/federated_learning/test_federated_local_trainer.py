@@ -20,6 +20,10 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         announcement_config_mock.fl_rounds = 2
         announcement_config_mock.epochs = 5
         announcement_config_mock.baseline_model_artifact = "/path/to/model"
+        announcement_config_mock.features_names = {
+            "features": ["x1", "x2"],
+            "labels": "y"
+        }
         train_set_path = "/path/to/train.csv"
         local_model_weights_path = "/path/to/participant_directory"
         read_csv_mock.return_value = pd.DataFrame({

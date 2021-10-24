@@ -30,8 +30,8 @@ class FederatedLocalTrainer:
         self.announcement_config = announcement_config
         self.local_model = load_fl_model(announcement_config.baseline_model_artifact)
         train_set_df = pd.read_csv(train_set_path)
-        # TODO: generalize this function to extract features and labels from the dataset
-        self.x_train, self.y_train = train_set_df[["x1", "x2"]].values, train_set_df["y"].values
+        self.x_train = train_set_df[self.announcement_config.features_names["features"]].values
+        self.y_train = train_set_df[self.announcement_config.features_names["labels"]].values
         self.local_model_weights_path = local_model_weights_path
         self.rounds2history = {}
         self._initialize_rounds2history()

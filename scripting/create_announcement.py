@@ -28,62 +28,6 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--task_name',
-        dest='task_name',
-        metavar='task_name',
-        type=str,
-        help='The name of the task',
-        required=True
-    )
-    parser.add_argument(
-        '--task_description',
-        dest='task_description',
-        metavar='task_description',
-        type=str,
-        help='The description of the task',
-        required=True
-    )
-    parser.add_argument(
-        '--model_artifact',
-        dest='model_artifact',
-        metavar='model_artifact',
-        type=str,
-        help='The directory path to the whole model (both config and weights)',
-        required=True
-    )
-    parser.add_argument(
-        '--model_config',
-        dest='model_config',
-        metavar='model_config',
-        type=str,
-        help="The file path to model's config",
-        required=True
-    )
-    parser.add_argument(
-        '--model_weights',
-        dest='model_weights',
-        metavar='model_weights',
-        type=str,
-        help="The file path to model's config",
-        required=True
-    )
-    parser.add_argument(
-        '--fl_rounds',
-        dest='fl_rounds',
-        metavar='fl_rounds',
-        type=int,
-        help='The number of federated rounds',
-        required=True
-    )
-    parser.add_argument(
-        '--epochs',
-        dest='epochs',
-        metavar='epochs',
-        type=int,
-        help='The number of epochs to train the local models',
-        required=True
-    )
-    parser.add_argument(
         '--task_config_path',
         dest='task_config_path',
         metavar='task_config_path',
@@ -102,23 +46,25 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting script to initialize an announcement")
 
+    announcement_config = AnnouncementConfiguration.read_json_config(args.task_config_path)
+
     # load test set
     test_set = pd.read_csv(args.test_set_path)
     logger.info("Dataset loaded from %s", args.test_set_path)
 
-    # TODO: generalize this function to extract features and labels from the dataset
-    x_test, y_test = test_set[["x1", "x2"]].values, test_set["y"].values
+    x_test = test_set[announcement_config.features_names["features"]].values,
+    y_test = test_set[announcement_config.features_names["labels"]].values
     # create a simple linear model as baseline
     model = LinearModel(activation="sigmoid")
     model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
     logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
 
     # save the model's artifact
-    save_fl_model(model, args.model_artifact)
+    save_fl_model(model, announcement_config.baseline_model_artifact)
     # save the model's config
-    save_fl_model_config(model, args.model_config)
+    save_fl_model_config(model, announcement_config.baseline_model_config)
     # save the model's weights
-    save_fl_model_weights(model, args.model_weights)
+    save_fl_model_weights(model, announcement_config.baseline_model_weights)
 
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
@@ -131,21 +77,6 @@ if __name__ == '__main__':
     # Fetch deployed contract reference
     contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
     logger.info("Fetched contract %s", args.announcement_contract_address)
-
-    announcement_config = AnnouncementConfiguration(
-        args.task_name,
-        args.task_description,
-        args.model_artifact,
-        args.model_config,
-        args.model_weights,
-        # TODO: substitute with real feature names
-        "features names",
-        args.fl_rounds,
-        args.epochs
-    )
-
-    # write the json config in the file system
-    announcement_config.write_json_config(args.task_config_path)
 
     # automatically takes the first address
     manufacturer_address = web3.eth.accounts[0]
