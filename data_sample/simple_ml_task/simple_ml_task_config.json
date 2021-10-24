@@ -1,5 +1,5 @@
 {
-	"task_name": "Simple ML task",
+	"task_name": "simple_ml_task",
 	"task_description": "The task proposed is a supervised binary classification task with random generated data",
 	"baseline_model_artifact": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/linear_model",
 	"baseline_model_weights": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/linear_model_config.json",
