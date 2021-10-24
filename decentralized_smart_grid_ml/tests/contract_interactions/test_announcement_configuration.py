@@ -38,3 +38,16 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual("test features", announcement_config.features_names)
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)
+
+    @patch("json.dump")
+    def test_write_json_config(self, json_dump_mock):
+        m_o = mock_open()
+        output_path = "/path/to/config.json"
+        announcement_config = AnnouncementConfiguration(None, None, None, None, None, None, None, None)
+        json_file = {"json": "test"}
+        announcement_config.__dict__ = json_file
+        with patch("decentralized_smart_grid_ml.contract_interactions.announcement_configuration.open", m_o):
+            announcement_config.write_json_config(output_path)
+        m_o.assert_called_with(output_path, "w")
+        handle = m_o()
+        json_dump_mock.assert_called_with(json_file, handle, indent="\t")

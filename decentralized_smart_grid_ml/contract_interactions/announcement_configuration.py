@@ -48,6 +48,11 @@ class AnnouncementConfiguration:
         return announcement_config
 
     def write_json_config(self, output_path):
+        """
+        Writes the json that contains the Announcement's attributes
+        :param output_path: file path to the output
+        :return:
+        """
         with open(output_path, "w") as file_write:
-            json.dump(self.__dict__, file_write)
+            json.dump(self.__dict__, file_write, indent="\t")
         logger.info("Wrote announcement's configuration in %s", output_path)
