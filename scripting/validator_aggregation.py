@@ -14,7 +14,7 @@ from decentralized_smart_grid_ml.contract_interactions.announcement_configuratio
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_address_contract
 
 logger = create_logger(__name__)
 
@@ -22,11 +22,11 @@ logger = create_logger(__name__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--announcement_contract_address',
-        dest='announcement_contract_address',
-        metavar='announcement_contract_address',
+        '--contract_info_path',
+        dest='contract_info_path',
+        metavar='contract_info_path',
         type=str,
-        help='The address of the announcement contract',
+        help="File path to the json file that contains announcement's contract information",
         required=True
     )
     parser.add_argument(
@@ -68,6 +68,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting validator job")
 
+    contract_address = get_address_contract(args.contract_info_path)
+
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
     logger.info("Connected to the blockchain %s", BLOCKCHAIN_ADDRESS)
@@ -77,8 +79,8 @@ if __name__ == '__main__':
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
     # Fetch deployed contract reference
-    contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
-    logger.info("Fetched contract %s", args.announcement_contract_address)
+    contract = web3.eth.contract(address=contract_address, abi=contract_abi)
+    logger.info("Fetched contract %s", contract_address)
 
     # automatically takes the last address
     validator_address = web3.eth.accounts[-1]
