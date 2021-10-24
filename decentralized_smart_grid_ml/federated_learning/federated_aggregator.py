@@ -83,8 +83,8 @@ class Aggregator:
         self.announcement_config = announcement_config
         self.global_model = load_fl_model(announcement_config.baseline_model_artifact)
         test_set_df = pd.read_csv(test_set_path)
-        # TODO: generalize this function to extract features and labels from the dataset
-        self.x_test, self.y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
+        self.x_test = test_set_df[self.announcement_config.features_names["features"]].values
+        self.y_test = test_set_df[self.announcement_config.features_names["labels"]].values
         self.rounds2participants = {}
         self._initialize_rounds2participants()
         self.current_round = 0

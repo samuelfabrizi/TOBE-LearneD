@@ -52,8 +52,8 @@ if __name__ == '__main__':
     test_set = pd.read_csv(args.test_set_path)
     logger.info("Dataset loaded from %s", args.test_set_path)
 
-    # TODO: generalize this function to extract features and labels from the dataset
-    x_test, y_test = test_set[["x1", "x2"]].values, test_set["y"].values
+    x_test = test_set[announcement_config.features_names["features"]].values,
+    y_test = test_set[announcement_config.features_names["labels"]].values
     # create a simple linear model as baseline
     model = LinearModel(activation="sigmoid")
     model.compile(optimizer="sgd", loss="mse", metrics="accuracy")

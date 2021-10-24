@@ -68,6 +68,10 @@ class TestFederatedAggregator(unittest.TestCase):
         global_model_path = "/path/to/model"
         announcement_config_mock.fl_rounds = 2
         announcement_config_mock.baseline_model_artifact = global_model_path
+        announcement_config_mock.features_names = {
+            "features": ["x1", "x2"],
+            "labels": "y"
+        }
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
