@@ -16,8 +16,13 @@ contract Announcement {
   // number of participants subscribed in the task
   uint8 public currentNumberParticipant;
   // mapping from participant address to boolean that indicates
-  // if the participant is subscribed in the task
+  // whether the participant is subscribed in the task
   mapping(address => bool) private participants;
+  // mapping from participant address to participant id
+  mapping(address => uint8) private participant2id;
+  // array of participants' identifier
+  uint8[] public participantsIdentifier;
+
 
   uint8[] participantIds;
 
@@ -36,6 +41,22 @@ contract Announcement {
     _;
   }
 
+  modifier newSubscription() {
+    require(
+      participants[msg.sender] == false,
+      'Participant already subscribed'
+    );
+    _;
+  }
+
+  modifier isSubscribed() {
+    require(
+      participants[msg.sender] == true,
+      'Participant is not subscribed in the task'
+    );
+    _;
+  }
+
   /// @notice Initializes the announcement
   /// @param _taskConfiguration path to the task's configuration file
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
@@ -46,19 +67,19 @@ contract Announcement {
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
       currentNumberParticipant = 0;
+      participantsIdentifier = new uint8[](maxNumberParticipant);
   }
 
   /// @notice Subscribes the sender in the announcement
-  function subscribe() public {
+  function subscribe() public newSubscription() {
     participants[msg.sender] = true;
+    participant2id[msg.sender] = currentNumberParticipant;
+    participantsIdentifier[currentNumberParticipant] = currentNumberParticipant;
     currentNumberParticipant = currentNumberParticipant + 1;
   }
 
-  /// @notice Checks if the sender is subscribed
-  /// @return True if the sendes is subscribed
-  ///         False otherwise
-  function isSubscribed() public view returns(bool) {
-    return participants[msg.sender];
+  function getParticipantId() public view isSubscribed() returns(uint8) {
+    return participant2id[msg.sender];
   }
 
 }

@@ -9,11 +9,11 @@ contract("Test Announcement smart contract", accounts => {
   const consumer1 = accounts[1];
   const consumer2 = accounts[2];
 
-  beforeEach('Deploy the Announcement smart contract', async () => {
-    announcementInstance = await Announcement.deployed({from: manufacturer});
-  });
-
   describe("Announcement SC initialization", async () => {
+
+    beforeEach('Deploy the Announcement smart contract', async () => {
+      announcementInstance = await Announcement.new({from: manufacturer});
+    });
 
     it("shoud deploy the Announcement SC", async () => {
     assert.equal(
@@ -55,23 +55,63 @@ contract("Test Announcement smart contract", accounts => {
 
   describe("Consumer subscription", async () => {
 
-    beforeEach('Consumer 1 subscribes to the task', async () => {
+    beforeEach('Deploy and initialize the Announcement smart contract', async () => {
+      announcementInstance = await Announcement.new({from: manufacturer});
+      await announcementInstance.initialize(
+        taskConfiguration,
+        maxNumberParticipant,
+        {from: manufacturer}
+      );
+    });
+
+    it("should subscribe in the Announcement", async () => {
       await announcementInstance.subscribe({from: consumer1});
+      assert.equal(
+        await announcementInstance.currentNumberParticipant(),
+        1,
+        "The current number of participants should be " + 1
+      );
+    });
+
+    it("should not subscribe in the Announcement (already subscribed)", async () => {
+      await announcementInstance.subscribe({from: consumer1});
+      await truffleAssert.reverts(
+        announcementInstance.subscribe(
+          {from: consumer1}
+        )
+      );
     });
 
     it("the Consumer 1 should be subscribed", async () => {
+      await announcementInstance.subscribe({from: consumer1});
       assert.equal(
-        await announcementInstance.isSubscribed({from: consumer1}),
-        true,
+        await announcementInstance.getParticipantId({from: consumer1}),
+        0,
         "The consumer " + consumer1 + " should be subscribed"
       );
     });
 
-    it("the Consumer 2 should not be subscribed", async () => {
+    it("both the Consumer 1 and 2 should be subscribed", async () => {
+      await announcementInstance.subscribe({from: consumer1});
+      await announcementInstance.subscribe({from: consumer2});
       assert.equal(
-        await announcementInstance.isSubscribed({from: consumer2}),
-        false,
-        "The consumer " + consumer2 + " should not be subscribed"
+        await announcementInstance.getParticipantId({from: consumer1}),
+        0,
+        "The consumer " + consumer1 + " should be subscribed"
+      );
+      assert.equal(
+        await announcementInstance.getParticipantId({from: consumer2}),
+        1,
+        "The consumer " + consumer2 + " should be subscribed"
+      );
+    });
+
+    it("the Consumer 2 should not be subscribed", async () => {
+      await announcementInstance.subscribe({from: consumer1});
+      await truffleAssert.reverts(
+        announcementInstance.getParticipantId(
+          {from: consumer2}
+        )
       );
     });
 
