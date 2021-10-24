@@ -13,7 +13,7 @@ logger = create_logger(__name__)
 
 
 def split_dataset_validator_participants(dataset_path, n_participants, test_size=0.2,
-                                    random_state=None, shuffle=False):
+                                         random_state=None, shuffle=False):
     """
     Splits a given dataset in N datasets, one for each participant
     :param dataset_path: file path to the whole original dataset

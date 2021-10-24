@@ -9,10 +9,24 @@ logger = create_logger(__name__)
 
 
 class AnnouncementConfiguration:
+    """
+    This class represents an Announcement
+    """
 
     def __init__(self, task_name, task_description, baseline_model_artifact,
                  baseline_model_weights, baseline_model_config, features_names,
                  fl_rounds, epochs):
+        """
+        Constructor
+        :param task_name: name of the task
+        :param task_description: description of the task
+        :param baseline_model_artifact: path to the baseline model's artifact
+        :param baseline_model_weights: path to the baseline model's weights
+        :param baseline_model_config: path to the baseline model's config
+        :param features_names: features name of the dataset (features and labels)
+        :param fl_rounds: number of federated rounds
+        :param epochs: number of epochs
+        """
         self.task_name = task_name
         self.task_description = task_description
         self.baseline_model_artifact = baseline_model_artifact
@@ -31,7 +45,9 @@ class AnnouncementConfiguration:
         :return: instance of AnnouncementConfiguration class
             that represents the Announcement SC required
         """
-        config_task_path = contract_instance.functions.taskConfiguration().call({"from": user_address})
+        config_task_path = contract_instance.functions.taskConfiguration().call(
+            {"from": user_address}
+        )
         logger.info("Configuration file path %s extract with success", config_task_path)
         with open(config_task_path, "r") as file_read:
             json_config_task = json.load(file_read)
