@@ -57,6 +57,14 @@ contract Announcement {
     _;
   }
 
+  modifier notAlreadyStarted() {
+    require(
+      currentNumberParticipant != maxNumberParticipant,
+      'The task is already started'
+    );
+    _;
+  }
+
   /// @notice Initializes the announcement
   /// @param _taskConfiguration path to the task's configuration file
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
@@ -71,7 +79,7 @@ contract Announcement {
   }
 
   /// @notice Subscribes the sender in the announcement
-  function subscribe() public newSubscription() {
+  function subscribe() public notAlreadyStarted() newSubscription() {
     participants[msg.sender] = true;
     participant2id[msg.sender] = currentNumberParticipant;
     participantsIdentifier[currentNumberParticipant] = true;

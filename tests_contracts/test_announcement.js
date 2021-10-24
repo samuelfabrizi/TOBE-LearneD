@@ -8,6 +8,7 @@ contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
   const consumer1 = accounts[1];
   const consumer2 = accounts[2];
+  const consumer3 = accounts[3];
 
   describe("Announcement SC initialization", async () => {
 
@@ -111,6 +112,16 @@ contract("Test Announcement smart contract", accounts => {
       await truffleAssert.reverts(
         announcementInstance.getParticipantId(
           {from: consumer2}
+        )
+      );
+    });
+
+    it("the Consumer 3 should not be accepted", async () => {
+      await announcementInstance.subscribe({from: consumer1});
+      await announcementInstance.subscribe({from: consumer2});
+      await truffleAssert.reverts(
+        announcementInstance.subscribe(
+          {from: consumer3}
         )
       );
     });
