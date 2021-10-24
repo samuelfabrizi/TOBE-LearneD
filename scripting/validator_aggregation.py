@@ -38,14 +38,6 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--n_participants',
-        dest='n_participants',
-        metavar='n_participants',
-        type=int,
-        help='The number of participants',
-        required=True
-    )
-    parser.add_argument(
         '--model_weights_new_round_path',
         dest='model_weights_new_round_path',
         metavar='model_weights_new_round_path',
@@ -89,10 +81,19 @@ if __name__ == '__main__':
         validator_address, contract
     )
 
-    # TODO: change the participant_ids with the relative attribute in the Announcement
-    participant_ids = list(range(args.n_participants))
+    maximum_number_participants = contract.functions.maxNumberParticipant().call({"from": validator_address})
+    isStarted = False
+
+    while not isStarted:
+        number_participants = contract.functions.currentNumberParticipant().call({"from": validator_address})
+        if number_participants != maximum_number_participants:
+            logger.info("We need to wait that other participants subscribe to the task")
+            time.sleep(2)
+        else:
+            isStarted = True
+
     aggregator = Aggregator(
-        participant_ids,
+        list(range(number_participants)),
         announcement_configuration,
         args.test_set_path,
         args.model_weights_new_round_path
