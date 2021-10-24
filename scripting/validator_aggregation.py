@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     maximum_number_participants = contract.functions.maxNumberParticipant().call({"from": validator_address})
     isStarted = False
-    # TODO: change the participant_ids with the relative attribute in the Announcement
+
     while not isStarted:
         participant_ids = list(range(contract.functions.currentNumberParticipant().call({"from": validator_address})))
         if len(participant_ids) != maximum_number_participants:
@@ -91,6 +91,7 @@ if __name__ == '__main__':
             time.sleep(2)
         else:
             isStarted = True
+
     aggregator = Aggregator(
         participant_ids,
         announcement_configuration,
