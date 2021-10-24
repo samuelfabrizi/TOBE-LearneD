@@ -47,12 +47,23 @@ class AnnouncementConfiguration:
         )
         return announcement_config
 
-    def write_json_config(self, output_path):
+    @classmethod
+    def read_json_config(cls, config_path):
         """
-        Writes the json that contains the Announcement's attributes
-        :param output_path: file path to the output
-        :return:
+        Reads the json that contains the Announcement's attributes
+        :param config_path: file path to the configuration file
+        :return: instance of AnnouncementConfiguration class
         """
-        with open(output_path, "w") as file_write:
-            json.dump(self.__dict__, file_write, indent="\t")
-        logger.info("Wrote announcement's configuration in %s", output_path)
+        with open(config_path, "r") as file_read:
+            json_config_task = json.load(file_read)
+        announcement_config = cls(
+            json_config_task["task_name"],
+            json_config_task["task_description"],
+            json_config_task["baseline_model_artifact"],
+            json_config_task["baseline_model_weights"],
+            json_config_task["baseline_model_config"],
+            json_config_task["features_names"],
+            json_config_task["fl_rounds"],
+            json_config_task["epochs"]
+        )
+        return announcement_config
