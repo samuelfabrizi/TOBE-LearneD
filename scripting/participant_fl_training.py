@@ -15,6 +15,7 @@ from decentralized_smart_grid_ml.contract_interactions.announcement_configuratio
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH
 
 logger = create_logger(__name__)
 
@@ -30,35 +31,11 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--blockchain_address',
-        dest='blockchain_address',
-        metavar='blockchain_address',
-        type=str,
-        help='The address of the blockchain',
-        required=True
-    )
-    parser.add_argument(
         '--announcement_contract_address',
         dest='announcement_contract_address',
         metavar='announcement_contract_address',
         type=str,
         help='The address of the announcement contract',
-        required=True
-    )
-    parser.add_argument(
-        '--announcement_json_path',
-        dest='announcement_json_path',
-        metavar='announcement_json_path',
-        type=str,
-        help='The file path to the json announcement contract',
-        required=True
-    )
-    parser.add_argument(
-        '--task_name',
-        dest='task_name',
-        metavar='task_name',
-        type=str,
-        help='The name of the task corresponding to the directory with all the files',
         required=True
     )
 
@@ -88,13 +65,10 @@ if __name__ == '__main__':
     logger.info("Starting participant %d federated learning", args.participant_id)
 
     # Client instance to interact with the blockchain
-    web3 = Web3(HTTPProvider(args.blockchain_address))
-    logger.info("Connected to the blockchain %s", args.blockchain_address)
+    web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
+    logger.info("Connected to the blockchain %s", BLOCKCHAIN_ADDRESS)
 
-    # Path to the compiled contract JSON file
-    compiled_announcement_contract_path = args.announcement_json_path
-
-    with open(compiled_announcement_contract_path) as file:
+    with open(ANNOUNCEMENT_JSON_PATH) as file:
         contract_json = json.load(file)  # load contract info as JSON
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
