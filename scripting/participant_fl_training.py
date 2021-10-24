@@ -48,7 +48,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    logger.info("Starting participant federated learning")
+    logger.info("Starting participant script")
 
     contract_address = get_address_contract(args.contract_info_path)
 
@@ -71,6 +71,7 @@ if __name__ == '__main__':
     contract.functions.subscribe().transact({'from': participant_address})
 
     participant_id = contract.functions.getParticipantId().call({'from': participant_address})
+    logger.info("The id of the participant is %s", participant_id)
 
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
@@ -88,6 +89,20 @@ if __name__ == '__main__':
         participant_directory_path,
         announcement_configuration.task_name + "_" + str(participant_id) + ".csv"
     )
+
+    maximum_number_participants = contract.functions.maxNumberParticipant().call({"from": participant_address})
+    isStarted = False
+
+    while not isStarted:
+        number_participants = contract.functions.currentNumberParticipant().call({"from": participant_address})
+        if number_participants != maximum_number_participants:
+            logger.info("We need to wait that other participants subscribe to the task")
+            time.sleep(2)
+        else:
+            isStarted = True
+
+    time.sleep(2)
+    logger.info("Starting participant federated learning")
 
     federated_local_trainer = FederatedLocalTrainer(
         participant_id,
