@@ -84,6 +84,6 @@ if __name__ == '__main__':
     # Call contract function (this is not persisted to the blockchain)
     contract.functions.initialize(
         args.task_config_path,
-        8       # maximum number of participants
+        2       # maximum number of participants
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")

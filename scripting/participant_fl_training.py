@@ -48,7 +48,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    logger.info("Starting participant %d federated learning", args.participant_id)
+    logger.info("Starting participant federated learning")
 
     contract_address = get_address_contract(args.contract_info_path)
 
@@ -70,6 +70,8 @@ if __name__ == '__main__':
     # subscribe in the task
     contract.functions.subscribe().transact({'from': participant_address})
 
+    participant_id = contract.functions.getParticipantId().call({'from': participant_address})
+
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
         participant_address, contract
@@ -79,16 +81,16 @@ if __name__ == '__main__':
         "data_sample",
         announcement_configuration.task_name,
         "participants",
-        "participant_" + str(args.participant_id)
+        "participant_" + str(participant_id)
     )
 
     local_dataset_path = os.path.join(
         participant_directory_path,
-        announcement_configuration.task_name + "_" + str(args.participant_id) + ".csv"
+        announcement_configuration.task_name + "_" + str(participant_id) + ".csv"
     )
 
     federated_local_trainer = FederatedLocalTrainer(
-        args.participant_id,
+        participant_id,
         announcement_configuration,
         local_dataset_path,
         participant_directory_path
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     participant_observer = Observer()
     participant_observer.schedule(participant_handler, args.validator_directory_path, recursive=True)
     # start the observer
-    logger.info("Starting the observer for the participant %s", args.participant_id)
+    logger.info("Starting the observer for the participant %s", participant_id)
     participant_observer.start()
     try:
         while not federated_local_trainer.is_finished:
@@ -108,5 +110,5 @@ if __name__ == '__main__':
         # stop and join the observer
         participant_observer.stop()
         participant_observer.join()
-    logger.info("The participant %s terminated his work with success", args.participant_id)
+    logger.info("The participant %s terminated his work with success", participant_id)
     sys.exit(0)

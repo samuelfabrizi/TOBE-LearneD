@@ -21,7 +21,7 @@ contract Announcement {
   // mapping from participant address to participant id
   mapping(address => uint8) private participant2id;
   // array of participants' identifier
-  uint8[] public participantsIdentifier;
+  bool[] public participantsIdentifier;
 
 
   uint8[] participantIds;
@@ -67,14 +67,14 @@ contract Announcement {
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
       currentNumberParticipant = 0;
-      participantsIdentifier = new uint8[](maxNumberParticipant);
+      participantsIdentifier = new bool[](maxNumberParticipant);
   }
 
   /// @notice Subscribes the sender in the announcement
   function subscribe() public newSubscription() {
     participants[msg.sender] = true;
     participant2id[msg.sender] = currentNumberParticipant;
-    participantsIdentifier[currentNumberParticipant] = currentNumberParticipant;
+    participantsIdentifier[currentNumberParticipant] = true;
     currentNumberParticipant = currentNumberParticipant + 1;
   }
 
