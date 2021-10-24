@@ -5,38 +5,21 @@ pragma solidity >=0.4.22 <0.9.0;
 ///         of a ML task proposed
 contract Announcement {
 
-  /// @title ParticipantSubscription
-  /// @notice This struct contains the participants's information
-  struct ParticipantSubscription {
-    bool isSubscribed;
-    bool[] rounds;
-  }
-
   // address of the manufacturer
   address public manufacturerAddress;
-  // name of the task
-  bytes32 public taskName;
-  // we can move the description in a decentralized storage
-  // if it requires too much gas
-  // description of the task
-  bytes32 public taskDescription;
-  // TODO: for now the deadlineDate is only the number of days
-  // date of the deadline
-  uint256 public deadlineDate;
-  // directory path to the whole model (both config and weights)
-  string public modelArtifact;
-  // this field is only to show a human-readable model's config
-  // file path to model's config
-  string public modelConfig;
-  // actually this is not used by the participants, it is contained
-  // in modelArtifact
-  // file path to model's weights
-  string public modelWeights;
-  // file path to the name of the ML task features
-  string public featuresNames;
-  // number of rounds for the federated learning
-  uint8 public flRound;
-  mapping(address => ParticipantSubscription) private participants;
+  // in a real implementation this attribute corresponds to
+  // the CID
+  // path to the task's configuration file
+  string public taskConfiguration;
+  // maximum number of participants admitted in the task
+  uint8 public maxNumberParticipant;
+  // number of participants subscribed in the task
+  uint8 public currentNumberParticipant;
+  // mapping from participant address to boolean that indicates
+  // if the participant is subscribed in the task
+  mapping(address => bool) private participants;
+
+  uint8[] participantIds;
 
   /// @notice Sets the manufacturer address
   constructor () public {
@@ -54,49 +37,28 @@ contract Announcement {
   }
 
   /// @notice Initializes the announcement
-  /// @param _taskName name of the task
-  /// @param _taskDescription description of the task
-  /// @param _deadlineDate date of the deadline
-  /// @param _modelArtifact directory path to the whole model
-  ///        (both config and weights)
-  /// @param _modelConfig file path to model's config
-  /// @param _modelWeights file path to model's weights
-  /// @param _featuresNames file path to the name of the ML task features
-  /// @param _flRound number of rounds for the federated learning
+  /// @param _taskConfiguration path to the task's configuration file
+  /// @param _maxNumberParticipant maximum number of participants admitted in the task
   function initialize (
-    bytes32 _taskName,
-    bytes32 _taskDescription,
-    uint256 _deadlineDate,
-    string memory _modelArtifact,
-    string memory _modelConfig,
-    string memory _modelWeights,
-    string memory _featuresNames,
-    uint8 _flRound
-    )
-    public onlyManufacturer() {
-    taskName = _taskName;
-    taskDescription = _taskDescription;
-    deadlineDate = _deadlineDate;
-    modelArtifact = _modelArtifact;
-    modelConfig = _modelConfig;
-    modelWeights = _modelWeights;
-    featuresNames = _featuresNames;
-    flRound = _flRound;
+    string memory _taskConfiguration,
+    uint8 _maxNumberParticipant
+    ) public onlyManufacturer() {
+      taskConfiguration = _taskConfiguration;
+      maxNumberParticipant = _maxNumberParticipant;
+      currentNumberParticipant = 0;
   }
 
   /// @notice Subscribes the sender in the announcement
   function subscribe() public {
-    participants[msg.sender] = ParticipantSubscription(
-      true,
-      new bool[](flRound)
-    );
+    participants[msg.sender] = true;
+    currentNumberParticipant = currentNumberParticipant + 1;
   }
 
   /// @notice Checks if the sender is subscribed
   /// @return True if the sendes is subscribed
   ///         False otherwise
   function isSubscribed() public view returns(bool) {
-    return participants[msg.sender].isSubscribed;
+    return participants[msg.sender];
   }
 
 }

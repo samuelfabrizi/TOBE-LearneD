@@ -9,10 +9,12 @@ import time
 from watchdog.observers import Observer
 from web3 import Web3, HTTPProvider
 
-from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
+from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import \
+    AnnouncementConfiguration
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH
 
 logger = create_logger(__name__)
 
@@ -20,27 +22,11 @@ logger = create_logger(__name__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--blockchain_address',
-        dest='blockchain_address',
-        metavar='blockchain_address',
-        type=str,
-        help='The address of the blockchain',
-        required=True
-    )
-    parser.add_argument(
         '--announcement_contract_address',
         dest='announcement_contract_address',
         metavar='announcement_contract_address',
         type=str,
         help='The address of the announcement contract',
-        required=True
-    )
-    parser.add_argument(
-        '--announcement_json_path',
-        dest='announcement_json_path',
-        metavar='announcement_json_path',
-        type=str,
-        help='The file path to the json announcement contract',
         required=True
     )
     parser.add_argument(
@@ -83,13 +69,10 @@ if __name__ == '__main__':
     logger.info("Starting validator job")
 
     # Client instance to interact with the blockchain
-    web3 = Web3(HTTPProvider(args.blockchain_address))
-    logger.info("Connected to the blockchain %s", args.blockchain_address)
+    web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
+    logger.info("Connected to the blockchain %s", BLOCKCHAIN_ADDRESS)
 
-    # Path to the compiled contract JSON file
-    compiled_announcement_contract_path = args.announcement_json_path
-
-    with open(compiled_announcement_contract_path) as file:
+    with open(ANNOUNCEMENT_JSON_PATH) as file:
         contract_json = json.load(file)  # load contract info as JSON
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
@@ -100,13 +83,15 @@ if __name__ == '__main__':
     # automatically takes the last address
     validator_address = web3.eth.accounts[-1]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(validator_address, contract)
+    announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
+        validator_address, contract
+    )
 
     # TODO: change the participant_ids with the relative attribute in the Announcement
     participant_ids = list(range(args.n_participants))
     aggregator = Aggregator(
         participant_ids,
-        announcement,
+        announcement_configuration,
         args.test_set_path,
         args.model_weights_new_round_path
     )

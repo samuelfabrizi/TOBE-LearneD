@@ -69,19 +69,19 @@ def weighted_average_aggregation(models_weights, alpha):
 class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
-    def __init__(self, participant_ids, announcement, test_set_path,
+    def __init__(self, participant_ids, announcement_config, test_set_path,
                  model_weights_new_round_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
-        :param announcement: dictionary that corresponds to the announcement
+        :param announcement_config: instance of AnnouncementConfiguration class
         :param test_set_path: file path to the test set
         :param model_weights_new_round_path: path to the directory that will contain the
             new model's weights (one for each round)
         """
         self.participant_ids = participant_ids
-        self.announcement = announcement
-        self.global_model = load_fl_model(announcement["global_model_path"])
+        self.announcement_config = announcement_config
+        self.global_model = load_fl_model(announcement_config.baseline_model_artifact)
         test_set_df = pd.read_csv(test_set_path)
         # TODO: generalize this function to extract features and labels from the dataset
         self.x_test, self.y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
@@ -96,7 +96,7 @@ class Aggregator:
         Initialize the rounds to participant information mapping
         :return:
         """
-        for idx_round in range(self.announcement["n_fl_rounds"]):
+        for idx_round in range(self.announcement_config.fl_rounds):
             self.rounds2participants[idx_round] = {
                 # TODO: takes a subset of the participant ids at each round
                 "valid_participant_ids": self.participant_ids,
@@ -209,7 +209,7 @@ class Aggregator:
         self.rounds2participants[self.current_round]["evaluation"] = evaluation_round
         # next round can start
         self.current_round += 1
-        if self.current_round == self.announcement["n_fl_rounds"]:
+        if self.current_round == self.announcement_config.fl_rounds:
             baseline_file_name = os.path.join(
                 self.model_weights_new_round_path,
                 "validator_weights_final.json"
