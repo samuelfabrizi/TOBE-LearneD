@@ -85,15 +85,15 @@ if __name__ == '__main__':
     isStarted = False
 
     while not isStarted:
-        participant_ids = list(range(contract.functions.currentNumberParticipant().call({"from": validator_address})))
-        if len(participant_ids) != maximum_number_participants:
+        number_participants = contract.functions.currentNumberParticipant().call({"from": validator_address})
+        if number_participants != maximum_number_participants:
             logger.info("We need to wait that other participants subscribe to the task")
             time.sleep(2)
         else:
             isStarted = True
 
     aggregator = Aggregator(
-        participant_ids,
+        list(range(number_participants)),
         announcement_configuration,
         args.test_set_path,
         args.model_weights_new_round_path
