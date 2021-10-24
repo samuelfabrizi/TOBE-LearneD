@@ -9,7 +9,8 @@ import time
 from watchdog.observers import Observer
 from web3 import Web3, HTTPProvider
 
-from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
+from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import \
+    AnnouncementConfiguration
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -100,13 +101,15 @@ if __name__ == '__main__':
     # automatically takes the last address
     validator_address = web3.eth.accounts[-1]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(validator_address, contract)
+    announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
+        validator_address, contract
+    )
 
     # TODO: change the participant_ids with the relative attribute in the Announcement
     participant_ids = list(range(args.n_participants))
     aggregator = Aggregator(
         participant_ids,
-        announcement,
+        announcement_configuration,
         args.test_set_path,
         args.model_weights_new_round_path
     )
