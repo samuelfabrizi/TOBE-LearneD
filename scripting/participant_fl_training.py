@@ -66,6 +66,10 @@ if __name__ == '__main__':
 
     # automatically takes the idx + 1address
     participant_address = web3.eth.accounts[args.participant_id + 1]
+
+    # subscribe in the task
+    contract.functions.subscribe().transact({'from': participant_address})
+
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
         participant_address, contract
