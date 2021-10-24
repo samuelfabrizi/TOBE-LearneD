@@ -11,15 +11,13 @@ from web3 import HTTPProvider, Web3
 
 from watchdog.observers import Observer
 
-from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
+from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import AnnouncementConfiguration
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
 
-# TODO: actually we need to take both epochs and batch size from a configuration file (or the Announcement SC)
-EPOCHS = 2
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -107,13 +105,14 @@ if __name__ == '__main__':
     # automatically takes the idx + 1address
     participant_address = web3.eth.accounts[args.participant_id + 1]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(participant_address, contract)
+    announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
+        participant_address, contract
+    )
 
     federated_local_trainer = FederatedLocalTrainer(
         args.participant_id,
-        announcement,
+        announcement_configuration,
         local_dataset_path,
-        EPOCHS,
         participant_directory_path
     )
     federated_local_trainer.fit_local_model(None)
