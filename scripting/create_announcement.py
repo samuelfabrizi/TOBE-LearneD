@@ -134,14 +134,18 @@ if __name__ == '__main__':
 
     announcement_config = AnnouncementConfiguration(
         args.task_name,
-        args.stask_description,
+        args.task_description,
         args.model_artifact,
         args.model_config,
         args.model_weights,
-        args.features_names,
+        # TODO: substitute with real feature names
+        "features names",
         args.fl_rounds,
         args.epochs
     )
+
+    # write the json config in the file system
+    announcement_config.write_json_config(args.task_config_path)
 
     # automatically takes the first address
     manufacturer_address = web3.eth.accounts[0]
