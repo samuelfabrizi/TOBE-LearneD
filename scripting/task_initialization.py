@@ -58,7 +58,14 @@ if __name__ == '__main__':
         dest='shuffle',
         action='store_true',
         help='Flag used to indicates if you want to shuffle the dataset before the split',
-        default=False,
+        default=False
+    )
+    parser.add_argument(
+        '--unbalanced',
+        dest='unbalanced',
+        action='store_true',
+        help="Flag used to indicates if you want unbalanced partitions for the participants' dataset",
+        default=False
     )
 
     args = parser.parse_args()
@@ -69,7 +76,8 @@ if __name__ == '__main__':
         args.n_participants,
         args.test_size,
         random_state=args.random_state,
-        shuffle=args.shuffle
+        shuffle=args.shuffle,
+        unbalanced=args.unbalanced
     )
     dataset_name = Path(args.dataset_path).stem
     # store the participants' local datasets

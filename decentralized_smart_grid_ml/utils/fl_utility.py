@@ -3,6 +3,7 @@ This module contains some utilities for the federated learning task
 """
 import pathlib
 
+import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle as sk_shuffle
 
@@ -13,7 +14,7 @@ logger = create_logger(__name__)
 
 
 def split_dataset_validator_participants(dataset_path, n_participants, test_size=0.2,
-                                         random_state=None, shuffle=False):
+                                         random_state=None, shuffle=False, unbalanced=False):
     """
     Splits a given dataset in N datasets, one for each participant
     :param dataset_path: file path to the whole original dataset
@@ -45,14 +46,29 @@ def split_dataset_validator_participants(dataset_path, n_participants, test_size
     df_dataset_test = df_dataset[:n_example_test]
     df_dataset_participants = df_dataset[n_example_test:]
     logger.info("The test split contains %d examples", len(df_dataset_test))
-    n_samples = len(df_dataset_participants)
-    chunk_size = int(n_samples / n_participants)
-    participants_datasets = []
-    for i in range(n_participants):
-        if i == (n_participants - 1):
-            participants_datasets.append(df_dataset_participants.iloc[i*chunk_size:])
-        else:
-            participants_datasets.append(
-                df_dataset_participants.iloc[chunk_size*i:chunk_size*(i+1)]
-            )
+    if not unbalanced:
+        participants_datasets = np.array_split(df_dataset_participants, n_participants)
+    else:
+        np.random.seed(random_state)
+        participants_distribution = \
+            np.random.dirichlet(np.ones(n_participants), 1).\
+            flatten()
+        participants_distribution = np.array(
+            participants_distribution * len(df_dataset_participants),
+            dtype=int
+        )
+        already_assigned_rows = 0
+        participants_datasets = []
+        for i, chunks in enumerate(participants_distribution):
+            if i == n_participants - 1:
+                participant_dataset = \
+                    df_dataset_participants[already_assigned_rows:]
+            else:
+                participant_dataset = \
+                    df_dataset_participants[already_assigned_rows:already_assigned_rows+chunks]
+            participants_datasets.append(participant_dataset)
+            already_assigned_rows += chunks
+    participants_df_length = [len(participant_df) for participant_df in participants_datasets]
+    assert sum(participants_df_length) == len(df_dataset_participants)
+    logger.info("The dataset distribution is the following: %s", participants_df_length)
     return df_dataset_test, participants_datasets
