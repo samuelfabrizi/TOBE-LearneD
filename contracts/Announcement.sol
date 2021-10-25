@@ -24,7 +24,7 @@ contract Announcement {
   bool[] public participantsIdentifier;
 
 
-  uint8[] participantIds;
+  uint8[] public participantIds;
 
   /// @notice Sets the manufacturer address
   constructor () public {
@@ -44,7 +44,7 @@ contract Announcement {
   modifier newSubscription() {
     require(
       participants[msg.sender] == false,
-      'Participant already subscribed'
+      "Participant already subscribed"
     );
     _;
   }
@@ -52,7 +52,7 @@ contract Announcement {
   modifier isSubscribed() {
     require(
       participants[msg.sender] == true,
-      'Participant is not subscribed in the task'
+      "Participant not subscribed"
     );
     _;
   }
@@ -60,7 +60,7 @@ contract Announcement {
   modifier notAlreadyStarted() {
     require(
       currentNumberParticipant != maxNumberParticipant,
-      'The task is already started'
+      "The task is already started"
     );
     _;
   }
