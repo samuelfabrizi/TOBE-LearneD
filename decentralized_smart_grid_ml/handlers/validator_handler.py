@@ -27,7 +27,8 @@ class ValidatorHandler(FileSystemEventHandler):
         :param event: event generated
         :return:
         """
-        logger.info("The file %s has been created", event.src_path)
-        round_is_completed = self.aggregator.add_participant_weights(event.src_path)
-        if round_is_completed:
-            self.aggregator.update_global_model()
+        if not self.aggregator.is_finished:
+            logger.info("The file %s has been created", event.src_path)
+            round_is_completed = self.aggregator.add_participant_weights(event.src_path)
+            if round_is_completed:
+                self.aggregator.update_global_model()
