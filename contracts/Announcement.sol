@@ -28,7 +28,7 @@ contract Announcement {
   uint8[] public participantIds;
 
   /// @notice Sets the manufacturer address
-  constructor () public {
+  constructor () {
     manufacturerAddress = msg.sender;
   }
 
