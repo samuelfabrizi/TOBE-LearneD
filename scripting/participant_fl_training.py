@@ -15,7 +15,7 @@ from decentralized_smart_grid_ml.contract_interactions.announcement_configuratio
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_address_contract
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_addresses_contracts
 
 logger = create_logger(__name__)
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting participant script")
 
-    contract_address = get_address_contract(args.contract_info_path)
+    announcement_contract_address, dex_contract_address = get_addresses_contracts(args.contract_info_path)
 
     # Client instance to interact with the blockchain
     web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
@@ -61,8 +61,8 @@ if __name__ == '__main__':
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
     # Fetch deployed contract reference
-    contract = web3.eth.contract(address=contract_address, abi=contract_abi)
-    logger.info("Fetched contract %s", contract_address)
+    contract = web3.eth.contract(address=announcement_contract_address, abi=contract_abi)
+    logger.info("Fetched contract %s", announcement_contract_address)
 
     # automatically takes the idx + 1address
     participant_address = web3.eth.accounts[args.participant_id + 1]
