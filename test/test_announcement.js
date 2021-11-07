@@ -4,6 +4,7 @@ const Announcement = artifacts.require("Announcement");
 const taskConfiguration = "path/task/configuration.json";
 const maxNumberParticipant = 2;
 const tokensAtStake = 100000000;
+const percentageRewardValidator = 20;
 
 contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
@@ -30,6 +31,7 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           maxNumberParticipant,
           tokensAtStake,
+          percentageRewardValidator,
           {from: consumer1}
         )
       );
@@ -41,6 +43,7 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           maxNumberParticipant,
           0,
+          percentageRewardValidator,
           {from: manufacturer}
         )
       );
@@ -52,6 +55,43 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           1,
           tokensAtStake,
+          percentageRewardValidator,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (insufficient maximum number of participants)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          1,
+          tokensAtStake,
+          percentageRewardValidator,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (empty validator's reward)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          maxNumberParticipant,
+          tokensAtStake,
+          0,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (not percentage validator's reward)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          maxNumberParticipant,
+          tokensAtStake,
+          101,
           {from: manufacturer}
         )
       );
@@ -62,6 +102,7 @@ contract("Test Announcement smart contract", accounts => {
         taskConfiguration,
         maxNumberParticipant,
         tokensAtStake,
+        percentageRewardValidator,
         {from: manufacturer}
       );
       assert.equal(
@@ -79,6 +120,11 @@ contract("Test Announcement smart contract", accounts => {
         tokensAtStake,
         "The number of tokens at stake should be " + tokensAtStake
       );
+      assert.equal(
+        await announcementInstance.percentageRewardValidator(),
+        percentageRewardValidator,
+        "The percentage of the validator's reward should be " + percentageRewardValidator
+      );
 
     });
 
@@ -92,6 +138,7 @@ contract("Test Announcement smart contract", accounts => {
         taskConfiguration,
         maxNumberParticipant,
         tokensAtStake,
+        percentageRewardValidator,
         {from: manufacturer}
       );
     });

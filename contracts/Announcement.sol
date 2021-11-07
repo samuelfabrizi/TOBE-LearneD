@@ -18,6 +18,8 @@ contract Announcement {
   uint8 public currentNumberParticipant;
   // number of tokens stake
   uint256 public tokensAtStake;
+  // percentage of tokens to assign to the validator
+  uint8 public percentageRewardValidator;
   // mapping from participant address to boolean that indicates
   // whether the participant is subscribed in the task
   mapping(address => bool) private participants;
@@ -79,19 +81,29 @@ contract Announcement {
   function initialize (
     string memory _taskConfiguration,
     uint8 _maxNumberParticipant,
-    uint256 _tokensAtStake
+    uint256 _tokensAtStake,
+    uint8 _percentageRewardValidator
     ) public onlyManufacturer() {
+      require(
+        _maxNumberParticipant > 1,
+        "Insufficient max participants"
+      );
       require(
         _tokensAtStake > 0,
         "Not empty rewards"
       );
       require(
-        _maxNumberParticipant > 1,
-        "Insufficient max participants"
+        _percentageRewardValidator > 0,
+        "Not empty validator reward"
+      );
+      require(
+        _percentageRewardValidator < 100,
+        "Not percentage validator reward"
       );
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
       tokensAtStake = _tokensAtStake;
+      percentageRewardValidator = _percentageRewardValidator;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
   }
