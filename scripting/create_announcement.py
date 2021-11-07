@@ -43,6 +43,22 @@ if __name__ == '__main__':
         help='The file path to the test set',
         required=True
     )
+    parser.add_argument(
+        '--n_tokens_at_stake',
+        dest='n_tokens_at_stake',
+        metavar='n_tokens_at_stake',
+        type=int,
+        help='The number of tokens at stake',
+        required=True
+    )
+    parser.add_argument(
+        '--max_number_participants',
+        dest='max_number_participants',
+        metavar='max_number_participants',
+        type=int,
+        help='The maximum number of participants admitted in the task',
+        required=True
+    )
     args = parser.parse_args()
     logger.info("Starting script to initialize an announcement")
 
@@ -83,7 +99,8 @@ if __name__ == '__main__':
     manufacturer_address = web3.eth.accounts[0]
     # Call contract function (this is not persisted to the blockchain)
     contract.functions.initialize(
-        args.task_config_path,
-        2       # maximum number of participants
+        args.task_config_path,              # path to the configuration file of the task
+        args.max_number_participants,       # maximum number of participants,
+        args.n_tokens_at_stake              # number of tokens at stake
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
