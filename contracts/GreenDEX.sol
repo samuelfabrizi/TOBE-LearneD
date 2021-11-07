@@ -39,10 +39,6 @@ contract GreenDEX {
     emit Bought(amountTobuy);
   }
 
-  function approve(uint256 amount) public returns(bool)  {
-    return greenToken.approve(address(this), amount);
-  }
-
   function sell(uint256 amount) public {
     require(
       amount > 0,
