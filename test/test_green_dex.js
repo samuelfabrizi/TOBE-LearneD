@@ -4,8 +4,8 @@ const GreenToken = artifacts.require("GreenToken");
 
 
 contract("Test GreenDEX smart contract", accounts => {
-  const manufacturer = accounts[1];
-  const consumer1 = accounts[2];
+  const manufacturer = accounts[0];
+  const consumer1 = accounts[1];
 
   describe("Manufacturer tokens' purchase", async () => {
 
