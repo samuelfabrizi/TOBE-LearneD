@@ -60,6 +60,15 @@ if __name__ == '__main__':
         help='The maximum number of participants admitted in the task',
         required=True
     )
+
+    parser.add_argument(
+        '--percentage_reward_validator',
+        dest='percentage_reward_validator',
+        metavar='percentage_reward_validator',
+        type=int,
+        help='The percentage of tokens to assign to the validator',
+        required=True
+    )
     args = parser.parse_args()
     logger.info("Starting script to initialize an announcement")
 
@@ -116,6 +125,7 @@ if __name__ == '__main__':
     announcement_contract.functions.initialize(
         args.task_config_path,              # path to the configuration file of the task
         args.max_number_participants,       # maximum number of participants,
-        args.n_tokens_at_stake              # number of tokens at stake
+        args.n_tokens_at_stake,             # number of tokens at stake
+        args.percentage_reward_validator    # percentage of tokens to assign to the validator
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
