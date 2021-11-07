@@ -18,7 +18,7 @@ contract GreenDEX {
     greenToken = new GreenToken();
   }
 
-  function buy() payable public {
+  function buy() external payable {
     uint256 amountTobuy = msg.value;
     uint256 dexBalance = greenToken.balanceOf(address(this));
     require(
