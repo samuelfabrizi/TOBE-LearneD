@@ -13,10 +13,10 @@ module.exports = async(deployer) => {
   let contract = await Announcement.deployed();
 
   // create the json with contracts' addresses
-  const contractObj = [
-    {"address": contract.address},
-    {"address_dex": contract_dex.address}
-  ];
+  const contractObj = {
+    "address": contract.address,
+    "address_dex": contract_dex.address
+  };
   // write the json file in the file system
   const contractJson = JSON.stringify(contractObj, null, 4);
   fs.writeFileSync(output_file_name, contractJson, 'utf8');
