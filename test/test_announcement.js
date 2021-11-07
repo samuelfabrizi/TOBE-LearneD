@@ -46,6 +46,17 @@ contract("Test Announcement smart contract", accounts => {
       );
     });
 
+    it("should reject the initialization (insufficient maximum number of participants)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          1,
+          tokensAtStake,
+          {from: manufacturer}
+        )
+      );
+    });
+
     it("should initialize the Announcement SC with the ML task attributes", async () => {
       await announcementInstance.initialize(
         taskConfiguration,

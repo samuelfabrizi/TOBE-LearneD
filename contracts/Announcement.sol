@@ -85,6 +85,10 @@ contract Announcement {
         _tokensAtStake > 0,
         "Not empty rewards"
       );
+      require(
+        _maxNumberParticipant > 1,
+        "Insufficient max participants"
+      );
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
       tokensAtStake = _tokensAtStake;
