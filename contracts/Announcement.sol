@@ -16,6 +16,8 @@ contract Announcement {
   uint8 public maxNumberParticipant;
   // number of participants subscribed in the task
   uint8 public currentNumberParticipant;
+  // number of tokens stake
+  uint256 public tokensAtStake;
   // mapping from participant address to boolean that indicates
   // whether the participant is subscribed in the task
   mapping(address => bool) private participants;
@@ -76,10 +78,16 @@ contract Announcement {
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
   function initialize (
     string memory _taskConfiguration,
-    uint8 _maxNumberParticipant
+    uint8 _maxNumberParticipant,
+    uint256 _tokensAtStake
     ) public onlyManufacturer() {
+      require(
+        _tokensAtStake > 0,
+        "Not empty rewards"
+      );
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
+      tokensAtStake = _tokensAtStake;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
   }
