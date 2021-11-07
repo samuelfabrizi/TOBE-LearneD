@@ -6,6 +6,7 @@
     "avoid-throw": "off",
     "avoid-suicide": "error",
     "avoid-sha3": "warn",
-    "max-line-length": ["warn", 120]
+    "max-line-length": ["warn", 120],
+    "func-visibility": ["warn",{"ignoreConstructors":true}]
   }
 }
