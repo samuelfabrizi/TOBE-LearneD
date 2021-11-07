@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 /// @title Announcement
-/// @notice This contract contains all the information related to the announcement
-///         of a ML task proposed
+/// @notice This contract contains all the information related to
+///         the announcement of a ML task proposed
 contract Announcement {
 
   // address of the manufacturer
@@ -23,8 +23,7 @@ contract Announcement {
   mapping(address => uint8) private participant2id;
   // array of participants' identifier
   bool[] public participantsIdentifier;
-
-
+  // participants' identifiers
   uint8[] public participantIds;
 
   /// @notice Sets the manufacturer address
@@ -32,7 +31,7 @@ contract Announcement {
     manufacturerAddress = msg.sender;
   }
 
-  /// @notice Check if the sender address corresponds
+  /// @notice Checks if the sender address corresponds
   ///         to the manufacturer address
   modifier onlyManufacturer() {
     require(
@@ -42,6 +41,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the sender is
+  ///         subscribed in the task
   modifier newSubscription() {
     require(
       participants[msg.sender] == false,
@@ -50,6 +51,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the sender is
+  ///         not already subscribed in the task
   modifier isSubscribed() {
     require(
       participants[msg.sender] == true,
@@ -58,6 +61,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the tash is
+  ///         already started
   modifier notAlreadyStarted() {
     require(
       currentNumberParticipant != maxNumberParticipant,
@@ -87,6 +92,8 @@ contract Announcement {
     currentNumberParticipant = currentNumberParticipant + 1;
   }
 
+  /// @notice Retrieves the participant' id of the caller
+  /// @return participant id
   function getParticipantId() public view isSubscribed() returns(uint8) {
     return participant2id[msg.sender];
   }
