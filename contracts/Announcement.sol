@@ -1,8 +1,9 @@
-pragma solidity >=0.4.22 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 /// @title Announcement
-/// @notice This contract contains all the information related to the announcement
-///         of a ML task proposed
+/// @notice This contract contains all the information related to
+///         the announcement of a ML task proposed
 contract Announcement {
 
   // address of the manufacturer
@@ -15,6 +16,8 @@ contract Announcement {
   uint8 public maxNumberParticipant;
   // number of participants subscribed in the task
   uint8 public currentNumberParticipant;
+  // number of tokens stake
+  uint256 public tokensAtStake;
   // mapping from participant address to boolean that indicates
   // whether the participant is subscribed in the task
   mapping(address => bool) private participants;
@@ -22,16 +25,15 @@ contract Announcement {
   mapping(address => uint8) private participant2id;
   // array of participants' identifier
   bool[] public participantsIdentifier;
-
-
+  // participants' identifiers
   uint8[] public participantIds;
 
   /// @notice Sets the manufacturer address
-  constructor () public {
+  constructor () {
     manufacturerAddress = msg.sender;
   }
 
-  /// @notice Check if the sender address corresponds
+  /// @notice Checks if the sender address corresponds
   ///         to the manufacturer address
   modifier onlyManufacturer() {
     require(
@@ -41,6 +43,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the sender is
+  ///         subscribed in the task
   modifier newSubscription() {
     require(
       participants[msg.sender] == false,
@@ -49,6 +53,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the sender is
+  ///         not already subscribed in the task
   modifier isSubscribed() {
     require(
       participants[msg.sender] == true,
@@ -57,6 +63,8 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the tash is
+  ///         already started
   modifier notAlreadyStarted() {
     require(
       currentNumberParticipant != maxNumberParticipant,
@@ -70,10 +78,20 @@ contract Announcement {
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
   function initialize (
     string memory _taskConfiguration,
-    uint8 _maxNumberParticipant
+    uint8 _maxNumberParticipant,
+    uint256 _tokensAtStake
     ) public onlyManufacturer() {
+      require(
+        _tokensAtStake > 0,
+        "Not empty rewards"
+      );
+      require(
+        _maxNumberParticipant > 1,
+        "Insufficient max participants"
+      );
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
+      tokensAtStake = _tokensAtStake;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
   }
@@ -86,6 +104,8 @@ contract Announcement {
     currentNumberParticipant = currentNumberParticipant + 1;
   }
 
+  /// @notice Retrieves the participant' id of the caller
+  /// @return participant id
   function getParticipantId() public view isSubscribed() returns(uint8) {
     return participant2id[msg.sender];
   }

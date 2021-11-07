@@ -3,6 +3,7 @@ const Announcement = artifacts.require("Announcement");
 
 const taskConfiguration = "path/task/configuration.json";
 const maxNumberParticipant = 2;
+const tokensAtStake = 100000000;
 
 contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
@@ -23,12 +24,35 @@ contract("Test Announcement smart contract", accounts => {
       "The owner of the Announcement SC should be the manufacturer: " + manufacturer);
     });
 
-    it("should reject the initialization", async () => {
+    it("should reject the initialization (wrong caller)", async () => {
       await truffleAssert.reverts(
         announcementInstance.initialize(
           taskConfiguration,
           maxNumberParticipant,
+          tokensAtStake,
           {from: consumer1}
+        )
+      );
+    });
+
+    it("should reject the initialization (empty reward)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          maxNumberParticipant,
+          0,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (insufficient maximum number of participants)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          1,
+          tokensAtStake,
+          {from: manufacturer}
         )
       );
     });
@@ -37,6 +61,7 @@ contract("Test Announcement smart contract", accounts => {
       await announcementInstance.initialize(
         taskConfiguration,
         maxNumberParticipant,
+        tokensAtStake,
         {from: manufacturer}
       );
       assert.equal(
@@ -48,6 +73,11 @@ contract("Test Announcement smart contract", accounts => {
         await announcementInstance.maxNumberParticipant(),
         maxNumberParticipant,
         "The maximum number of participants should be " + maxNumberParticipant
+      );
+      assert.equal(
+        await announcementInstance.tokensAtStake(),
+        tokensAtStake,
+        "The number of tokens at stake should be " + tokensAtStake
       );
 
     });
@@ -61,6 +91,7 @@ contract("Test Announcement smart contract", accounts => {
       await announcementInstance.initialize(
         taskConfiguration,
         maxNumberParticipant,
+        tokensAtStake,
         {from: manufacturer}
       );
     });
