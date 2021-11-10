@@ -151,3 +151,11 @@ if __name__ == '__main__':
     logger.info("Total number of tokens:  %s", args.n_tokens_at_stake)
     logger.info("Total reward for the validator: %s", validator_reward)
     logger.info("Total reward for the participants: %s", int(args.n_tokens_at_stake) - validator_reward)
+
+    is_finished = False
+
+    while not is_finished:
+        if announcement_contract.functions.isFinished().call({'from': manufacturer_address}):
+            is_finished = True
+
+    logger.info("The task is finished")
