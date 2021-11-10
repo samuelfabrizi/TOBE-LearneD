@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./GreenDEX.sol";
+import "./GreenToken.sol";
+
+
 /// @title Announcement
 /// @notice This contract contains all the information related to
 ///         the announcement of a ML task proposed
 contract Announcement {
+
+  using SafeMath for uint256;
 
   // address of the manufacturer
   address public manufacturerAddress;
@@ -31,10 +38,13 @@ contract Announcement {
   uint8[] public participantIds;
   // boolean variable that indicates if the task is finished (true)
   bool public isFinished = false;
+  // GreenDEX smart contract instance
+  GreenToken private greenToken;
 
   /// @notice Sets the manufacturer address
-  constructor () {
+  constructor (address _greenDex_address) {
     manufacturerAddress = msg.sender;
+    greenToken = GreenToken(GreenDEX(_greenDex_address).greenToken());
   }
 
   /// @notice Checks if the sender address corresponds
@@ -73,6 +83,14 @@ contract Announcement {
     require(
       currentNumberParticipant != maxNumberParticipant,
       "The task is already started"
+    );
+    _;
+  }
+
+  modifier taskInProgress(){
+    require(
+      isFinished != true,
+      "The task is already finished"
     );
     _;
   }
@@ -129,5 +147,13 @@ contract Announcement {
   function endTask() public {
     isFinished = true;
   }
+
+  function assignRewards() public taskInProgress() {
+    uint validatorReward = tokensAtStake.mul(
+      percentageRewardValidator).div(100);
+      // TODO: add validator address
+      //greenToken.transfer();
+  }
+
 
 }

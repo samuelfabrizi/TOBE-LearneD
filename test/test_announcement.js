@@ -1,10 +1,12 @@
 const truffleAssert = require('truffle-assertions');
+const GreenDEX = artifacts.require("GreenDEX");
 const Announcement = artifacts.require("Announcement");
 
 const taskConfiguration = "path/task/configuration.json";
 const maxNumberParticipant = 2;
 const tokensAtStake = 100000000;
 const percentageRewardValidator = 20;
+
 
 contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
@@ -16,7 +18,8 @@ contract("Test Announcement smart contract", accounts => {
   describe("Announcement SC initialization", async () => {
 
     beforeEach('Deploy the Announcement smart contract', async () => {
-      announcementInstance = await Announcement.new({from: manufacturer});
+      const greenDexInstance = await GreenDEX.deployed();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
     });
 
     it("shoud deploy the Announcement SC", async () => {
@@ -48,18 +51,6 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           maxNumberParticipant,
           0,
-          percentageRewardValidator,
-          {from: manufacturer}
-        )
-      );
-    });
-
-    it("should reject the initialization (insufficient maximum number of participants)", async () => {
-      await truffleAssert.reverts(
-        announcementInstance.initialize(
-          taskConfiguration,
-          1,
-          tokensAtStake,
           percentageRewardValidator,
           {from: manufacturer}
         )
@@ -138,7 +129,8 @@ contract("Test Announcement smart contract", accounts => {
   describe("Consumer subscription", async () => {
 
     beforeEach('Deploy and initialize the Announcement smart contract', async () => {
-      announcementInstance = await Announcement.new({from: manufacturer});
+      const greenDexInstance = await GreenDEX.deployed();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
       await announcementInstance.initialize(
         taskConfiguration,
         maxNumberParticipant,

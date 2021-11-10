@@ -9,7 +9,7 @@ module.exports = async(deployer) => {
   let contract_dex = await GreenDEX.deployed();
 
   // deploy the Announcement SC
-  await deployer.deploy(Announcement);
+  await deployer.deploy(Announcement, contract_dex.address);
   let contract = await Announcement.deployed();
 
   // create the json with contracts' addresses
