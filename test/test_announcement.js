@@ -11,6 +11,7 @@ contract("Test Announcement smart contract", accounts => {
   const consumer1 = accounts[1];
   const consumer2 = accounts[2];
   const consumer3 = accounts[3];
+  const validator = accounts[9];
 
   describe("Announcement SC initialization", async () => {
 
@@ -23,6 +24,10 @@ contract("Test Announcement smart contract", accounts => {
       await announcementInstance.manufacturerAddress(),
       manufacturer,
       "The owner of the Announcement SC should be the manufacturer: " + manufacturer);
+    assert.equal(
+      await announcementInstance.isFinished(),
+      false,
+      "The task should not be finished");
     });
 
     it("should reject the initialization (wrong caller)", async () => {
@@ -202,6 +207,16 @@ contract("Test Announcement smart contract", accounts => {
           {from: consumer3}
         )
       );
+    });
+
+    it("the validator should define the end of the task", async () => {
+      await announcementInstance.endTask({from: validator});
+      assert.equal(
+        await announcementInstance.isFinished(),
+        true,
+        "The task should be finished"
+      );
+
     });
 
   });

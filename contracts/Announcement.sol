@@ -29,6 +29,8 @@ contract Announcement {
   bool[] public participantsIdentifier;
   // participants' identifiers
   uint8[] public participantIds;
+  // boolean variable that indicates if the task is finished (true)
+  bool public isFinished = false;
 
   /// @notice Sets the manufacturer address
   constructor () {
@@ -120,6 +122,12 @@ contract Announcement {
   /// @return participant id
   function getParticipantId() public view isSubscribed() returns(uint8) {
     return participant2id[msg.sender];
+  }
+
+  // TODO: add a requirement -> sender == validator
+  /// @notice Defines the end of task
+  function endTask() public {
+    isFinished = true;
   }
 
 }
