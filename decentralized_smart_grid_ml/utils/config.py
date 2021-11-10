@@ -7,6 +7,7 @@ import os
 BLOCKCHAIN_ADDRESS = os.environ["BC_ADDRESS"]
 ANNOUNCEMENT_JSON_PATH = os.environ["ANNOUNCEMENT_JSON_PATH"]
 DEX_JSON_PATH = os.environ["DEX_JSON_PATH"]
+TOKEN_JSON_PATH = os.environ["TOKEN_JSON_PATH"]
 
 
 def get_addresses_contracts(contract_info_path):
