@@ -13,7 +13,7 @@ from decentralized_smart_grid_ml.federated_learning.models_reader_writer import 
     save_fl_model_config, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, \
-    get_addresses_contracts, DEX_JSON_PATH
+    get_addresses_contracts, DEX_JSON_PATH, TOKEN_JSON_PATH
 
 logger = create_logger(__name__)
 
@@ -58,6 +58,15 @@ if __name__ == '__main__':
         metavar='max_number_participants',
         type=int,
         help='The maximum number of participants admitted in the task',
+        required=True
+    )
+
+    parser.add_argument(
+        '--percentage_reward_validator',
+        dest='percentage_reward_validator',
+        metavar='percentage_reward_validator',
+        type=int,
+        help='The percentage of tokens to assign to the validator',
         required=True
     )
     args = parser.parse_args()
@@ -112,10 +121,41 @@ if __name__ == '__main__':
         'value': args.n_tokens_at_stake
     })
 
-    # Call contract function (this is not persisted to the blockchain)
+    # Initialized the announcement
     announcement_contract.functions.initialize(
         args.task_config_path,              # path to the configuration file of the task
         args.max_number_participants,       # maximum number of participants,
-        args.n_tokens_at_stake              # number of tokens at stake
+        args.n_tokens_at_stake,             # number of tokens at stake
+        args.percentage_reward_validator    # percentage of tokens to assign to the validator
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
+
+    token_contract_address = dex_contract.functions.greenToken().call({'from': manufacturer_address})
+
+    with open(TOKEN_JSON_PATH) as file:
+        token_contract_json = json.load(file)  # load contract info as JSON
+        token_contract_abi = token_contract_json['abi']  # fetch contract's abi
+
+    # Fetch deployed GreenToken contract reference
+    dex_contract = web3.eth.contract(address=token_contract_address, abi=token_contract_abi)
+    logger.info("Fetched GreenToken contract from %s", token_contract_address)
+
+    # approve the transfer of the tokens (reward)
+    # by the announcement contract from the manufacturer's balance
+    dex_contract.functions.approve(
+        announcement_contract_address,
+        args.n_tokens_at_stake
+    ).transact({'from': manufacturer_address})
+    validator_reward = int(int(args.n_tokens_at_stake) * int(args.percentage_reward_validator) / 100)
+    logger.info("The approve function has been correctly called")
+    logger.info("Total number of tokens:  %s", args.n_tokens_at_stake)
+    logger.info("Total reward for the validator: %s", validator_reward)
+    logger.info("Total reward for the participants: %s", int(args.n_tokens_at_stake) - validator_reward)
+
+    is_finished = False
+
+    while not is_finished:
+        if announcement_contract.functions.isFinished().call({'from': manufacturer_address}):
+            is_finished = True
+
+    logger.info("The task is finished")

@@ -1,10 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./GreenDEX.sol";
+import "./GreenToken.sol";
+
+
 /// @title Announcement
 /// @notice This contract contains all the information related to
 ///         the announcement of a ML task proposed
 contract Announcement {
+
+  using SafeMath for uint256;
 
   // address of the manufacturer
   address public manufacturerAddress;
@@ -18,6 +25,8 @@ contract Announcement {
   uint8 public currentNumberParticipant;
   // number of tokens stake
   uint256 public tokensAtStake;
+  // percentage of tokens to assign to the validator
+  uint8 public percentageRewardValidator;
   // mapping from participant address to boolean that indicates
   // whether the participant is subscribed in the task
   mapping(address => bool) private participants;
@@ -27,10 +36,15 @@ contract Announcement {
   bool[] public participantsIdentifier;
   // participants' identifiers
   uint8[] public participantIds;
+  // boolean variable that indicates if the task is finished (true)
+  bool public isFinished = false;
+  // GreenDEX smart contract instance
+  GreenToken private greenToken;
 
   /// @notice Sets the manufacturer address
-  constructor () {
+  constructor (address _greenDex_address) {
     manufacturerAddress = msg.sender;
+    greenToken = GreenToken(GreenDEX(_greenDex_address).greenToken());
   }
 
   /// @notice Checks if the sender address corresponds
@@ -73,25 +87,43 @@ contract Announcement {
     _;
   }
 
+  modifier taskInProgress(){
+    require(
+      isFinished != true,
+      "The task is already finished"
+    );
+    _;
+  }
+
   /// @notice Initializes the announcement
   /// @param _taskConfiguration path to the task's configuration file
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
   function initialize (
     string memory _taskConfiguration,
     uint8 _maxNumberParticipant,
-    uint256 _tokensAtStake
+    uint256 _tokensAtStake,
+    uint8 _percentageRewardValidator
     ) public onlyManufacturer() {
+      require(
+        _maxNumberParticipant > 1,
+        "Insufficient max participants"
+      );
       require(
         _tokensAtStake > 0,
         "Not empty rewards"
       );
       require(
-        _maxNumberParticipant > 1,
-        "Insufficient max participants"
+        _percentageRewardValidator > 0,
+        "Not empty validator reward"
+      );
+      require(
+        _percentageRewardValidator < 100,
+        "Not percentage validator reward"
       );
       taskConfiguration = _taskConfiguration;
       maxNumberParticipant = _maxNumberParticipant;
       tokensAtStake = _tokensAtStake;
+      percentageRewardValidator = _percentageRewardValidator;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
   }
@@ -109,5 +141,19 @@ contract Announcement {
   function getParticipantId() public view isSubscribed() returns(uint8) {
     return participant2id[msg.sender];
   }
+
+  // TODO: add a requirement -> sender == validator
+  /// @notice Defines the end of task
+  function endTask() public {
+    isFinished = true;
+  }
+
+  function assignRewards() public taskInProgress() {
+    uint validatorReward = tokensAtStake.mul(
+      percentageRewardValidator).div(100);
+      // TODO: add validator address
+      //greenToken.transfer();
+  }
+
 
 }

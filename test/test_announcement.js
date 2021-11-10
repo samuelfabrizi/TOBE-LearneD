@@ -1,20 +1,25 @@
 const truffleAssert = require('truffle-assertions');
+const GreenDEX = artifacts.require("GreenDEX");
 const Announcement = artifacts.require("Announcement");
 
 const taskConfiguration = "path/task/configuration.json";
 const maxNumberParticipant = 2;
 const tokensAtStake = 100000000;
+const percentageRewardValidator = 20;
+
 
 contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
   const consumer1 = accounts[1];
   const consumer2 = accounts[2];
   const consumer3 = accounts[3];
+  const validator = accounts[9];
 
   describe("Announcement SC initialization", async () => {
 
     beforeEach('Deploy the Announcement smart contract', async () => {
-      announcementInstance = await Announcement.new({from: manufacturer});
+      const greenDexInstance = await GreenDEX.deployed();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
     });
 
     it("shoud deploy the Announcement SC", async () => {
@@ -22,6 +27,10 @@ contract("Test Announcement smart contract", accounts => {
       await announcementInstance.manufacturerAddress(),
       manufacturer,
       "The owner of the Announcement SC should be the manufacturer: " + manufacturer);
+    assert.equal(
+      await announcementInstance.isFinished(),
+      false,
+      "The task should not be finished");
     });
 
     it("should reject the initialization (wrong caller)", async () => {
@@ -30,6 +39,7 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           maxNumberParticipant,
           tokensAtStake,
+          percentageRewardValidator,
           {from: consumer1}
         )
       );
@@ -41,6 +51,7 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           maxNumberParticipant,
           0,
+          percentageRewardValidator,
           {from: manufacturer}
         )
       );
@@ -52,6 +63,31 @@ contract("Test Announcement smart contract", accounts => {
           taskConfiguration,
           1,
           tokensAtStake,
+          percentageRewardValidator,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (empty validator's reward)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          maxNumberParticipant,
+          tokensAtStake,
+          0,
+          {from: manufacturer}
+        )
+      );
+    });
+
+    it("should reject the initialization (not percentage validator's reward)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.initialize(
+          taskConfiguration,
+          maxNumberParticipant,
+          tokensAtStake,
+          101,
           {from: manufacturer}
         )
       );
@@ -62,6 +98,7 @@ contract("Test Announcement smart contract", accounts => {
         taskConfiguration,
         maxNumberParticipant,
         tokensAtStake,
+        percentageRewardValidator,
         {from: manufacturer}
       );
       assert.equal(
@@ -79,6 +116,11 @@ contract("Test Announcement smart contract", accounts => {
         tokensAtStake,
         "The number of tokens at stake should be " + tokensAtStake
       );
+      assert.equal(
+        await announcementInstance.percentageRewardValidator(),
+        percentageRewardValidator,
+        "The percentage of the validator's reward should be " + percentageRewardValidator
+      );
 
     });
 
@@ -87,11 +129,13 @@ contract("Test Announcement smart contract", accounts => {
   describe("Consumer subscription", async () => {
 
     beforeEach('Deploy and initialize the Announcement smart contract', async () => {
-      announcementInstance = await Announcement.new({from: manufacturer});
+      const greenDexInstance = await GreenDEX.deployed();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
       await announcementInstance.initialize(
         taskConfiguration,
         maxNumberParticipant,
         tokensAtStake,
+        percentageRewardValidator,
         {from: manufacturer}
       );
     });
@@ -155,6 +199,16 @@ contract("Test Announcement smart contract", accounts => {
           {from: consumer3}
         )
       );
+    });
+
+    it("the validator should define the end of the task", async () => {
+      await announcementInstance.endTask({from: validator});
+      assert.equal(
+        await announcementInstance.isFinished(),
+        true,
+        "The task should be finished"
+      );
+
     });
 
   });
