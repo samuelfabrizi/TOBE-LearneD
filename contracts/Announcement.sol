@@ -38,19 +38,19 @@ contract Announcement {
   uint8[] public participantIds;
   // boolean variable that indicates if the task is finished (true)
   bool public isFinished = false;
-  // address of the validator (trusted entity)
+  // address of the validator (trusted)
   address public validatorAddress;
   // GreenDEX smart contract instance
   GreenToken private greenToken;
 
   /// @notice Sets the manufacturer address
+  /// @param _greenDex_address address of the GreenDEX instance
   constructor (address _greenDex_address) {
     manufacturerAddress = msg.sender;
     greenToken = GreenToken(GreenDEX(_greenDex_address).greenToken());
   }
 
-  /// @notice Checks if the sender address corresponds
-  ///         to the manufacturer address
+  /// @notice Checks if the sender address corresponds to the manufacturer address
   modifier onlyManufacturer() {
     require(
       msg.sender == manufacturerAddress,
@@ -59,8 +59,7 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the sender is
-  ///         subscribed in the task
+  /// @notice Checks if the sender is subscribed in the task
   modifier newSubscription() {
     require(
       participants[msg.sender] == false,
@@ -69,8 +68,7 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the sender is
-  ///         not already subscribed in the task
+  /// @notice Checks if the sender is not already subscribed in the task
   modifier isSubscribed() {
     require(
       participants[msg.sender] == true,
@@ -79,8 +77,7 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the tash is
-  ///         already started
+  /// @notice Checks if the task is already started
   modifier notAlreadyStarted() {
     require(
       currentNumberParticipant != maxNumberParticipant,
@@ -89,6 +86,7 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the task is in progress
   modifier taskInProgress(){
     require(
       isFinished != true,
@@ -100,6 +98,9 @@ contract Announcement {
   /// @notice Initializes the announcement
   /// @param _taskConfiguration path to the task's configuration file
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
+  /// @param _tokensAtStake number of tokens at stake
+  /// @param _percentageRewardValidator percentage of tokens to assign to the validator  in (0, 100)
+  /// @param _validatorAddress address of the validator (trusted)
   function initialize (
     string memory _taskConfiguration,
     uint8 _maxNumberParticipant,
