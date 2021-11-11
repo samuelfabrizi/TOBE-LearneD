@@ -40,7 +40,7 @@ contract Announcement {
   bool public isFinished = false;
   // address of the validator (trusted)
   address public validatorAddress;
-  // GreenDEX smart contract instance
+  // GreenToken smart contract instance
   GreenToken private greenToken;
 
   /// @notice Sets the manufacturer address
