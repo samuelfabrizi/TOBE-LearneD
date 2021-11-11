@@ -127,6 +127,11 @@ contract("Test Announcement smart contract", accounts => {
         percentageRewardValidator,
         "The percentage of the validator's reward should be " + percentageRewardValidator
       );
+      assert.equal(
+        await announcementInstance.validatorAddress(),
+        validator,
+        "The validator address should be " + validator
+      );
 
     });
 
@@ -208,6 +213,25 @@ contract("Test Announcement smart contract", accounts => {
       );
     });
 
+  });
+
+  describe("End of the task", async () => {
+
+    beforeEach('Deploy and initialize the Announcement smart contract', async () => {
+      const greenDexInstance = await GreenDEX.deployed();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
+      await announcementInstance.initialize(
+        taskConfiguration,
+        maxNumberParticipant,
+        tokensAtStake,
+        percentageRewardValidator,
+        validator,
+        {from: manufacturer}
+      );
+      await announcementInstance.subscribe({from: consumer1});
+      await announcementInstance.subscribe({from: consumer2});
+    });
+
     it("the validator should define the end of the task", async () => {
       await announcementInstance.endTask({from: validator});
       assert.equal(
@@ -218,6 +242,23 @@ contract("Test Announcement smart contract", accounts => {
 
     });
 
-  });
+    it("should reject the end task call (wrong caller)", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.endTask({from: consumer1})
+      );
 
+    });
+
+    /*
+    it("the manufacturer should assign the rewards", async () => {
+      await announcementInstance.assignRewards({from: manufacturer});
+      assert.equal(
+        await announcementInstance.isFinished(),
+        true,
+        "The task should be finished"
+      );
+
+
+    */
+    });
 });
