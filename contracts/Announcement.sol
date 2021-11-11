@@ -95,11 +95,11 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the task is in progress
-  modifier taskInProgress(){
+  /// @notice Checks if the task is finished
+  modifier taskFinished(){
     require(
-      isFinished != true,
-      "The task is already finished"
+      isFinished == true,
+      "The task is still in progress"
     );
     _;
   }
@@ -162,7 +162,7 @@ contract Announcement {
   }
 
   /// @notice Assigns the rewards to both validator and participants
-  function assignRewards() public taskInProgress() onlyManufacturer() {
+  function assignRewards() public taskFinished() onlyManufacturer() {
     uint validatorReward = tokensAtStake.mul(
       percentageRewardValidator).div(100);
     require(
@@ -170,8 +170,7 @@ contract Announcement {
       "Insufficient Allowance"
     );
     greenToken.transferFrom(manufacturerAddress, validatorAddress, validatorReward);
-    
-  }
 
+  }
 
 }

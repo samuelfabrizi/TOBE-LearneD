@@ -229,8 +229,6 @@ contract("Test Announcement smart contract", accounts => {
         validator,
         {from: manufacturer}
       );
-      // the manufacturer buy the tokens to assign as rewards
-      await greenDexInstance.buy({from: manufacturer, value: tokensAtStake});
       // cosnumers' subscription
       await announcementInstance.subscribe({from: consumer1});
       await announcementInstance.subscribe({from: consumer2});
@@ -253,15 +251,39 @@ contract("Test Announcement smart contract", accounts => {
 
     });
 
-    it("the manufacturer should assign the rewards", async () => {
-      const validatorReward = tokensAtStake * percentageRewardValidator / 100;
-      const greenTokenInstance = await GreenToken.at(
+  });
+
+  describe("Rewards assignment", async () => {
+
+    beforeEach('Deploy and initialize the Announcement smart contract', async () => {
+      const greenDexInstance = await GreenDEX.new();
+      announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
+      await announcementInstance.initialize(
+        taskConfiguration,
+        maxNumberParticipant,
+        tokensAtStake,
+        percentageRewardValidator,
+        validator,
+        {from: manufacturer}
+      );
+      // the manufacturer buy the tokens to assign as rewards
+      await greenDexInstance.buy({from: manufacturer, value: tokensAtStake});
+      // cosnumers' subscription
+      await announcementInstance.subscribe({from: consumer1});
+      await announcementInstance.subscribe({from: consumer2});
+      greenTokenInstance = await GreenToken.at(
         await announcementInstance.greenToken()
       );
+      // the manufactuer allows the announcement to assign the rewards
       await greenTokenInstance.approve(
         announcementInstance.address, tokensAtStake,
         {from: manufacturer}
       );
+      await announcementInstance.endTask({from: validator});
+    });
+
+    it("the manufacturer should assign the rewards", async () => {
+      const validatorReward = tokensAtStake * percentageRewardValidator / 100;
       const allowanceBeforeRewards = await greenTokenInstance.allowance(
         manufacturer,
         announcementInstance.address
@@ -278,7 +300,6 @@ contract("Test Announcement smart contract", accounts => {
       );
 
     });
-
 
   });
 
