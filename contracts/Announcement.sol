@@ -41,7 +41,7 @@ contract Announcement {
   // address of the validator (trusted)
   address public validatorAddress;
   // GreenToken smart contract instance
-  GreenToken private greenToken;
+  GreenToken public greenToken;
 
   /// @notice Sets the manufacturer address
   /// @param _greenDexAddress address of the GreenDEX instance
@@ -165,7 +165,12 @@ contract Announcement {
   function assignRewards() public taskInProgress() onlyManufacturer() {
     uint validatorReward = tokensAtStake.mul(
       percentageRewardValidator).div(100);
-      greenToken.transfer(validatorAddress, validatorReward);
+    require(
+      greenToken.allowance(manufacturerAddress, address(this)) >= validatorReward,
+      "Insufficient Allowance"
+    );
+    greenToken.transferFrom(manufacturerAddress, validatorAddress, validatorReward);
+    
   }
 
 

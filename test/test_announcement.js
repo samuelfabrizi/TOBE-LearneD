@@ -1,4 +1,5 @@
 const truffleAssert = require('truffle-assertions');
+const GreenToken = artifacts.require("GreenToken");
 const GreenDEX = artifacts.require("GreenDEX");
 const Announcement = artifacts.require("Announcement");
 
@@ -18,7 +19,7 @@ contract("Test Announcement smart contract", accounts => {
   describe("Announcement SC initialization", async () => {
 
     beforeEach('Deploy the Announcement smart contract', async () => {
-      const greenDexInstance = await GreenDEX.deployed();
+      const greenDexInstance = await GreenDEX.new();
       announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
     });
 
@@ -140,7 +141,7 @@ contract("Test Announcement smart contract", accounts => {
   describe("Consumer subscription", async () => {
 
     beforeEach('Deploy and initialize the Announcement smart contract', async () => {
-      const greenDexInstance = await GreenDEX.deployed();
+      const greenDexInstance = await GreenDEX.new();
       announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
       await announcementInstance.initialize(
         taskConfiguration,
@@ -218,7 +219,7 @@ contract("Test Announcement smart contract", accounts => {
   describe("End of the task", async () => {
 
     beforeEach('Deploy and initialize the Announcement smart contract', async () => {
-      const greenDexInstance = await GreenDEX.deployed();
+      const greenDexInstance = await GreenDEX.new();
       announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
       await announcementInstance.initialize(
         taskConfiguration,
@@ -228,6 +229,9 @@ contract("Test Announcement smart contract", accounts => {
         validator,
         {from: manufacturer}
       );
+      // the manufacturer buy the tokens to assign as rewards
+      await greenDexInstance.buy({from: manufacturer, value: tokensAtStake});
+      // cosnumers' subscription
       await announcementInstance.subscribe({from: consumer1});
       await announcementInstance.subscribe({from: consumer2});
     });
@@ -249,16 +253,33 @@ contract("Test Announcement smart contract", accounts => {
 
     });
 
-    /*
     it("the manufacturer should assign the rewards", async () => {
+      const validatorReward = tokensAtStake * percentageRewardValidator / 100;
+      const greenTokenInstance = await GreenToken.at(
+        await announcementInstance.greenToken()
+      );
+      await greenTokenInstance.approve(
+        announcementInstance.address, tokensAtStake,
+        {from: manufacturer}
+      );
+      const allowanceBeforeRewards = await greenTokenInstance.allowance(
+        manufacturer,
+        announcementInstance.address
+      );
       await announcementInstance.assignRewards({from: manufacturer});
+      const allowanceExpected = allowanceBeforeRewards - validatorReward;
       assert.equal(
-        await announcementInstance.isFinished(),
-        true,
-        "The task should be finished"
+        (await greenTokenInstance.allowance(
+          manufacturer,
+          announcementInstance.address
+        )).toNumber(),
+        allowanceExpected,
+        "the allowance should be " + allowanceExpected
       );
 
-
-    */
     });
+
+
+  });
+
 });
