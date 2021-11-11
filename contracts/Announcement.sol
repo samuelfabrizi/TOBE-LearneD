@@ -44,7 +44,7 @@ contract Announcement {
   GreenToken private greenToken;
 
   /// @notice Sets the manufacturer address
-  /// @param _greenDex_address address of the GreenDEX instance
+  /// @param _greenDexAddress address of the GreenDEX instance
   constructor (address _greenDexAddress) {
     manufacturerAddress = msg.sender;
     greenToken = GreenToken(GreenDEX(_greenDexAddress).greenToken());
@@ -54,6 +54,15 @@ contract Announcement {
   modifier onlyManufacturer() {
     require(
       msg.sender == manufacturerAddress,
+      "Sender not authorized"
+    );
+    _;
+  }
+
+  /// @notice Checks if the sender address corresponds to the validator address
+  modifier onlyValidator() {
+    require(
+      msg.sender == validatorAddress,
       "Sender not authorized"
     );
     _;
@@ -147,17 +156,16 @@ contract Announcement {
     return participant2id[msg.sender];
   }
 
-  // TODO: add a requirement -> sender == validator
   /// @notice Defines the end of task
-  function endTask() public {
+  function endTask() public onlyValidator() {
     isFinished = true;
   }
 
-  function assignRewards() public taskInProgress() {
+  /// @notice Assigns the rewards to both validator and participants
+  function assignRewards() public taskInProgress() onlyManufacturer() {
     uint validatorReward = tokensAtStake.mul(
       percentageRewardValidator).div(100);
-      // TODO: add validator address
-      //greenToken.transfer();
+      greenToken.transfer(validatorAddress, validatorReward);
   }
 
 
