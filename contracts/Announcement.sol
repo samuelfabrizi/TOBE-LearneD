@@ -45,9 +45,9 @@ contract Announcement {
 
   /// @notice Sets the manufacturer address
   /// @param _greenDex_address address of the GreenDEX instance
-  constructor (address _greenDex_address) {
+  constructor (address _greenDexAddress) {
     manufacturerAddress = msg.sender;
-    greenToken = GreenToken(GreenDEX(_greenDex_address).greenToken());
+    greenToken = GreenToken(GreenDEX(_greenDexAddress).greenToken());
   }
 
   /// @notice Checks if the sender address corresponds to the manufacturer address
