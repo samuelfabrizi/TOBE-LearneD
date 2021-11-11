@@ -22,7 +22,7 @@ contract("Test Announcement smart contract", accounts => {
       announcementInstance = await Announcement.new(greenDexInstance.address, {from: manufacturer});
     });
 
-    it("shoud deploy the Announcement SC", async () => {
+    it("should deploy the Announcement SC", async () => {
     assert.equal(
       await announcementInstance.manufacturerAddress(),
       manufacturer,
@@ -40,6 +40,7 @@ contract("Test Announcement smart contract", accounts => {
           maxNumberParticipant,
           tokensAtStake,
           percentageRewardValidator,
+          validator,
           {from: consumer1}
         )
       );
@@ -52,6 +53,7 @@ contract("Test Announcement smart contract", accounts => {
           maxNumberParticipant,
           0,
           percentageRewardValidator,
+          validator,
           {from: manufacturer}
         )
       );
@@ -64,6 +66,7 @@ contract("Test Announcement smart contract", accounts => {
           1,
           tokensAtStake,
           percentageRewardValidator,
+          validator,
           {from: manufacturer}
         )
       );
@@ -76,6 +79,7 @@ contract("Test Announcement smart contract", accounts => {
           maxNumberParticipant,
           tokensAtStake,
           0,
+          validator,
           {from: manufacturer}
         )
       );
@@ -88,6 +92,7 @@ contract("Test Announcement smart contract", accounts => {
           maxNumberParticipant,
           tokensAtStake,
           101,
+          validator,
           {from: manufacturer}
         )
       );
@@ -99,6 +104,7 @@ contract("Test Announcement smart contract", accounts => {
         maxNumberParticipant,
         tokensAtStake,
         percentageRewardValidator,
+        validator,
         {from: manufacturer}
       );
       assert.equal(
@@ -136,6 +142,7 @@ contract("Test Announcement smart contract", accounts => {
         maxNumberParticipant,
         tokensAtStake,
         percentageRewardValidator,
+        validator,
         {from: manufacturer}
       );
     });

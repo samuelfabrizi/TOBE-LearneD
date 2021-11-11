@@ -38,6 +38,8 @@ contract Announcement {
   uint8[] public participantIds;
   // boolean variable that indicates if the task is finished (true)
   bool public isFinished = false;
+  // address of the validator (trusted entity)
+  address public validatorAddress;
   // GreenDEX smart contract instance
   GreenToken private greenToken;
 
@@ -102,7 +104,8 @@ contract Announcement {
     string memory _taskConfiguration,
     uint8 _maxNumberParticipant,
     uint256 _tokensAtStake,
-    uint8 _percentageRewardValidator
+    uint8 _percentageRewardValidator,
+    address _validatorAddress
     ) public onlyManufacturer() {
       require(
         _maxNumberParticipant > 1,
@@ -126,6 +129,7 @@ contract Announcement {
       percentageRewardValidator = _percentageRewardValidator;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
+      validatorAddress =_validatorAddress;
   }
 
   /// @notice Subscribes the sender in the announcement
