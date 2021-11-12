@@ -3,6 +3,7 @@ This script permits the automatic initialization of an Announcement smart contra
 """
 import argparse
 import json
+import time
 
 import pandas as pd
 from web3 import Web3, HTTPProvider
@@ -126,7 +127,8 @@ if __name__ == '__main__':
         args.task_config_path,              # path to the configuration file of the task
         args.max_number_participants,       # maximum number of participants,
         args.n_tokens_at_stake,             # number of tokens at stake
-        args.percentage_reward_validator    # percentage of tokens to assign to the validator
+        args.percentage_reward_validator,   # percentage of tokens to assign to the validator
+        web3.eth.accounts[5]                # validator address
     ).transact({'from': manufacturer_address})
     logger.info("The Announcement smart contract has been correctly initialized")
 
@@ -157,5 +159,10 @@ if __name__ == '__main__':
     while not is_finished:
         if announcement_contract.functions.isFinished().call({'from': manufacturer_address}):
             is_finished = True
+        else:
+            logger.debug("Waiting the end of the task")
+            time.sleep(5)
 
     logger.info("The task is finished")
+    announcement_contract.functions.assignRewards().transact({'from': manufacturer_address})
+    logger.info("The rewards have been assigned")
