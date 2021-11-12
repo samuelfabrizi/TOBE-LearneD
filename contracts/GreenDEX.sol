@@ -5,19 +5,30 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./GreenToken.sol";
 
 
+/// @title _greenDexAddress
+/// @notice This contract contains the implementation of the
+///         responsible for the direct exchange of green tokens
+/// @custom:see In the current implementation 1 ether == 1 token
 contract GreenDEX {
 
   using SafeMath for uint256;
 
+  // green token instance
   GreenToken public greenToken;
 
+  /// @notice Event triggered when someone purchase some tokens
+  /// @param amount number of tokens purchased
   event Bought(uint256 amount);
+  /// @notice Event triggered when someone sell some tokens
+  /// @param amount number of tokens sold
   event Sold(uint256 amount);
 
+  /// @notice Initializes the green token DEX
   constructor() {
     greenToken = new GreenToken();
   }
 
+  /// @notice Permits to an address to buy tokens in exchange of ether
   function buy() external payable {
     uint256 amountTobuy = msg.value;
     uint256 dexBalance = greenToken.balanceOf(address(this));
@@ -34,11 +45,12 @@ contract GreenDEX {
       amountTobuy <= dexBalance,
       "Not enough tokens"
     );
-
     greenToken.transfer(msg.sender, amountTobuy);
     emit Bought(amountTobuy);
   }
 
+  /// @notice Permits to an address to sell tokens in exchange of ether
+  /// @param amount Number of token to sell
   function sell(uint256 amount) public {
     require(
       amount > 0,
@@ -53,6 +65,5 @@ contract GreenDEX {
     payable(msg.sender).transfer(amount);
     emit Sold(amount);
   }
-
 
 }
