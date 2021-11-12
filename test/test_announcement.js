@@ -279,10 +279,10 @@ contract("Test Announcement smart contract", accounts => {
         announcementInstance.address, tokensAtStake,
         {from: manufacturer}
       );
-      await announcementInstance.endTask({from: validator});
     });
 
     it("the manufacturer should assign the rewards", async () => {
+      await announcementInstance.endTask({from: validator});
       const validatorReward = tokensAtStake * percentageRewardValidator / 100;
       const allowanceBeforeRewards = await greenTokenInstance.allowance(
         manufacturer,
@@ -297,6 +297,29 @@ contract("Test Announcement smart contract", accounts => {
         )).toNumber(),
         allowanceExpected,
         "the allowance should be " + allowanceExpected
+      );
+
+    });
+
+    it("the manufacturer should allow the rewards assignment", async () => {
+      await announcementInstance.endTask({from: validator});
+      // only for testing, when we will add the wholem rewards assignment we can
+      // fixed this test
+      await announcementInstance.assignRewards({from: manufacturer});
+      await announcementInstance.assignRewards({from: manufacturer});
+      await announcementInstance.assignRewards({from: manufacturer});
+      await announcementInstance.assignRewards({from: manufacturer});
+      await announcementInstance.assignRewards({from: manufacturer});
+      // now the allowance is finished
+      await truffleAssert.reverts(
+        announcementInstance.assignRewards({from: manufacturer})
+      );
+
+    });
+
+    it("the task should be finished before the rewards assignment", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.assignRewards({from: manufacturer})
       );
 
     });
