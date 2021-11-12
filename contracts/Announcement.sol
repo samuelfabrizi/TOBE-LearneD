@@ -38,17 +38,19 @@ contract Announcement {
   uint8[] public participantIds;
   // boolean variable that indicates if the task is finished (true)
   bool public isFinished = false;
-  // GreenDEX smart contract instance
-  GreenToken private greenToken;
+  // address of the validator (trusted)
+  address public validatorAddress;
+  // GreenToken smart contract instance
+  GreenToken public greenToken;
 
   /// @notice Sets the manufacturer address
-  constructor (address _greenDex_address) {
+  /// @param _greenDexAddress address of the GreenDEX instance
+  constructor (address _greenDexAddress) {
     manufacturerAddress = msg.sender;
-    greenToken = GreenToken(GreenDEX(_greenDex_address).greenToken());
+    greenToken = GreenToken(GreenDEX(_greenDexAddress).greenToken());
   }
 
-  /// @notice Checks if the sender address corresponds
-  ///         to the manufacturer address
+  /// @notice Checks if the sender address corresponds to the manufacturer address
   modifier onlyManufacturer() {
     require(
       msg.sender == manufacturerAddress,
@@ -57,8 +59,16 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the sender is
-  ///         subscribed in the task
+  /// @notice Checks if the sender address corresponds to the validator address
+  modifier onlyValidator() {
+    require(
+      msg.sender == validatorAddress,
+      "Sender not authorized"
+    );
+    _;
+  }
+
+  /// @notice Checks if the sender is subscribed in the task
   modifier newSubscription() {
     require(
       participants[msg.sender] == false,
@@ -67,8 +77,7 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the sender is
-  ///         not already subscribed in the task
+  /// @notice Checks if the sender is not already subscribed in the task
   modifier isSubscribed() {
     require(
       participants[msg.sender] == true,
@@ -77,8 +86,7 @@ contract Announcement {
     _;
   }
 
-  /// @notice Checks if the tash is
-  ///         already started
+  /// @notice Checks if the task is already started
   modifier notAlreadyStarted() {
     require(
       currentNumberParticipant != maxNumberParticipant,
@@ -87,10 +95,11 @@ contract Announcement {
     _;
   }
 
-  modifier taskInProgress(){
+  /// @notice Checks if the task is finished
+  modifier taskFinished(){
     require(
-      isFinished != true,
-      "The task is already finished"
+      isFinished == true,
+      "The task is still in progress"
     );
     _;
   }
@@ -98,11 +107,15 @@ contract Announcement {
   /// @notice Initializes the announcement
   /// @param _taskConfiguration path to the task's configuration file
   /// @param _maxNumberParticipant maximum number of participants admitted in the task
+  /// @param _tokensAtStake number of tokens at stake
+  /// @param _percentageRewardValidator percentage of tokens to assign to the validator  in (0, 100)
+  /// @param _validatorAddress address of the validator (trusted)
   function initialize (
     string memory _taskConfiguration,
     uint8 _maxNumberParticipant,
     uint256 _tokensAtStake,
-    uint8 _percentageRewardValidator
+    uint8 _percentageRewardValidator,
+    address _validatorAddress
     ) public onlyManufacturer() {
       require(
         _maxNumberParticipant > 1,
@@ -126,6 +139,7 @@ contract Announcement {
       percentageRewardValidator = _percentageRewardValidator;
       currentNumberParticipant = 0;
       participantsIdentifier = new bool[](maxNumberParticipant);
+      validatorAddress =_validatorAddress;
   }
 
   /// @notice Subscribes the sender in the announcement
@@ -142,18 +156,21 @@ contract Announcement {
     return participant2id[msg.sender];
   }
 
-  // TODO: add a requirement -> sender == validator
   /// @notice Defines the end of task
-  function endTask() public {
+  function endTask() public onlyValidator() {
     isFinished = true;
   }
 
-  function assignRewards() public taskInProgress() {
+  /// @notice Assigns the rewards to both validator and participants
+  function assignRewards() public taskFinished() onlyManufacturer() {
     uint validatorReward = tokensAtStake.mul(
       percentageRewardValidator).div(100);
-      // TODO: add validator address
-      //greenToken.transfer();
-  }
+    require(
+      greenToken.allowance(manufacturerAddress, address(this)) >= validatorReward,
+      "Insufficient Allowance"
+    );
+    greenToken.transferFrom(manufacturerAddress, validatorAddress, validatorReward);
 
+  }
 
 }

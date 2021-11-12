@@ -75,7 +75,7 @@ if __name__ == '__main__':
     logger.info("Fetched contract %s", announcement_contract_address)
 
     # automatically takes the last address
-    validator_address = web3.eth.accounts[-1]
+    validator_address = web3.eth.accounts[9]
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
         validator_address, contract

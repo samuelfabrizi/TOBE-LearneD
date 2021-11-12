@@ -78,6 +78,9 @@ module.exports = {
     // timeout: 100000
   },
 
+  // Add plugins
+  plugins: ["solidity-coverage"],
+
   // Configure your compilers
   compilers: {
     solc: {
