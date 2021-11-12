@@ -4,10 +4,14 @@ This module contains all the global shared config needed by Decentralized-SG fra
 import json
 import os
 
+
+current_path_split = os.path.dirname(os.path.abspath(__file__)).split("/")
+project_absolute_path = "/".join(current_path_split[:-2])
+
 BLOCKCHAIN_ADDRESS = os.environ["BC_ADDRESS"]
-ANNOUNCEMENT_JSON_PATH = os.environ["ANNOUNCEMENT_JSON_PATH"]
-DEX_JSON_PATH = os.environ["DEX_JSON_PATH"]
-TOKEN_JSON_PATH = os.environ["TOKEN_JSON_PATH"]
+ANNOUNCEMENT_JSON_PATH = project_absolute_path + "/build/contracts/Announcement.json"
+DEX_JSON_PATH = project_absolute_path + "/build/contracts/GreenDEX.json"
+TOKEN_JSON_PATH = project_absolute_path + "/build/contracts/GreenToken.json"
 
 
 def get_addresses_contracts(contract_info_path):
