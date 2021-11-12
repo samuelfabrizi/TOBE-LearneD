@@ -15,6 +15,7 @@ class TestValidatorHandler(unittest.TestCase):
     def test_on_created_false(self, aggregator_mock, event_mock):
         path_to_local_weights = "/path/to/participant_weights.json"
         event_mock.src_path = path_to_local_weights
+        aggregator_mock.is_finished = False
         aggregator_mock.add_participant_weights.return_value = False
         val_handler = ValidatorHandler(aggregator_mock)
         val_handler.on_created(event_mock)
@@ -25,6 +26,7 @@ class TestValidatorHandler(unittest.TestCase):
     def test_on_created(self, aggregator_mock, event_mock):
         path_to_local_weights = "/path/to/participant_weights.json"
         event_mock.src_path = path_to_local_weights
+        aggregator_mock.is_finished = False
         aggregator_mock.add_participant_weights.return_value = True
         val_handler = ValidatorHandler(aggregator_mock)
         val_handler.on_created(event_mock)
