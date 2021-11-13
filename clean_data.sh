@@ -9,6 +9,8 @@ rm -rf data_sample/simple_ml_task/linear_model
 rm -rf data_sample/simple_ml_task/linear_model_config.json
 # delete the announcement info
 rm -f announcement_info.json
+# clean  the files created by python-coverage
+coverage erase
 # delete the files created by solidity-coverage
 rm -rf coverage
 rm -f coverage.json
