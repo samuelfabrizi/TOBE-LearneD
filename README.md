@@ -23,9 +23,9 @@
 
 ## Getting Started
 
-![Python language][python-shield] 
-![Javascript language][javascript-shield]
-![Solidity language][solidity-shield]
+[![Python language][python-shield]][python-url] 
+[![Javascript language][javascript-shield]][javascript-url]
+[![Solidity language][solidity-shield]][solidity-url]
 
 ### Installation
 
@@ -95,11 +95,14 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [license-shield]: https://img.shields.io/badge/LICENSE-MIT-green?style=for-the-badge
-[license-url]: https://github.com/samuelfabrizi/Decentralized-SmartGrid-ML/LICENSE.txt
+[license-url]: https://github.com/samuelfabrizi/Decentralized-SmartGrid-ML/blob/develop/LICENSE
 [coverage-shield]: .badges/python_coverage_badge.svg
 [python-shield]: https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=darkgreen
+[python-url]: https://www.python.org/
 [javascript-shield]: https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E
+[javascript-url]: https://www.javascript.com/ 
 [solidity-shield]: https://img.shields.io/badge/Solidity-e6e6e6?style=for-the-badge&logo=solidity&logoColor=black
+[solidity-url]: https://docs.soliditylang.org/
 [gmail-shield]: https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white
 [mail-url]: mailto:samuel.fabrizi97@gmail.com
 [linkedin-shield]: https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
