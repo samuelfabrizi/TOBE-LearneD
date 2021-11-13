@@ -16,6 +16,8 @@ class TestParticipantHandler(unittest.TestCase):
         val_handler = ParticipantHandler(trainer_mock)
         val_handler.on_created(event_mock)
         trainer_mock.fit_local_model.assert_called_with(path_to_aggregated_weights)
+        trainer_mock.is_finished = True
+        val_handler.on_created(event_mock)
 
     @patch("watchdog.events.FileSystemEvent")
     @patch("decentralized_smart_grid_ml.federated_learning.federated_local_trainer.FederatedLocalTrainer")

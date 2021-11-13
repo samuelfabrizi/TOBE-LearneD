@@ -32,3 +32,5 @@ class TestValidatorHandler(unittest.TestCase):
         val_handler.on_created(event_mock)
         aggregator_mock.add_participant_weights.assert_called_with(path_to_local_weights)
         aggregator_mock.update_global_model.assert_called_once()
+        aggregator_mock.is_finished = True
+        val_handler.on_created(event_mock)
