@@ -95,7 +95,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [license-shield]: https://img.shields.io/badge/LICENSE-MIT-green?style=for-the-badge
-[license-url]: https://github.com/samuelfabrizi/Decentralized-SmartGrid-ML/blob/LICENSE
+[license-url]: https://github.com/samuelfabrizi/Decentralized-SmartGrid-ML/blob/main/LICENSE
 [coverage-shield]: .badges/python_coverage_badge.svg
 [python-shield]: https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=darkgreen
 [python-url]: https://www.python.org/
