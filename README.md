@@ -70,6 +70,7 @@ Define the following environment variables:
 ### Coverage and Linting
 
 ---
+![Coverage][coverage-shield]\
 If you want to run the coverage test and the linting for the whole framework you can run respectively:\
 `sh coverage_test.sh` and `sh linter_script.sh`
 
@@ -95,6 +96,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [license-shield]: https://img.shields.io/badge/LICENSE-MIT-green?style=for-the-badge
 [license-url]: https://github.com/samuelfabrizi/Decentralized-SmartGrid-ML/LICENSE.txt
+[coverage-shield]: .badges/python_coverage_badge.svg
 [python-shield]: https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=darkgreen
 [javascript-shield]: https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E
 [solidity-shield]: https://img.shields.io/badge/Solidity-e6e6e6?style=for-the-badge&logo=solidity&logoColor=black
