@@ -31,20 +31,16 @@ contract GreenDEX {
   /// @notice Permits to an address to buy tokens in exchange of ether
   function buy() external payable {
     uint256 amountTobuy = msg.value;
-    uint256 dexBalance = greenToken.balanceOf(address(this));
     require(
       amountTobuy > 0,
       "Some ether are needed"
     );
 
-    if (amountTobuy <= dexBalance) {
-      uint256 diff = dexBalance.sub(amountTobuy);
+    uint256 dexBalance = greenToken.balanceOf(address(this));
+    if (amountTobuy > dexBalance) {
+      uint256 diff = amountTobuy.sub(dexBalance);
       greenToken.mint(address(this), diff.mul(2));
     }
-    require(
-      amountTobuy <= dexBalance,
-      "Not enough tokens"
-    );
     greenToken.transfer(msg.sender, amountTobuy);
     emit Bought(amountTobuy);
   }

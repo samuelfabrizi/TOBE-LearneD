@@ -7,7 +7,7 @@ contract("Test GreenDEX smart contract", accounts => {
   const manufacturer = accounts[0];
   const consumer1 = accounts[1];
 
-  describe("Manufacturer tokens' purchase", async () => {
+  describe("Manufacturer buys tokens", async () => {
 
     beforeEach('Deploy the GreenDEX smart contract', async () => {
       greenDexInstance = await GreenDEX.new({from: accounts[2]});
@@ -30,6 +30,15 @@ contract("Test GreenDEX smart contract", accounts => {
         "The manufacturer should have " + nTokenToBuy + " tokens");
     });
 
+    it("Some tokens are minted if necessary", async () => {
+      const nTokenToBuy = 10000000000000000000;
+      let tx = await greenDexInstance.buy({from: manufacturer, value: nTokenToBuy});
+      assert.equal(
+        await greenTokenInstance.balanceOf(manufacturer),
+        nTokenToBuy,
+        "The manufacturer should have " + nTokenToBuy + " tokens");
+    });
+
     it("should emit the Bought event", async () => {
       const nTokenToBuy = 10;
       let tx = await greenDexInstance.buy({from: manufacturer, value: nTokenToBuy});
@@ -37,9 +46,22 @@ contract("Test GreenDEX smart contract", accounts => {
         return ev.amount.toNumber() === nTokenToBuy;
       });
     });
+  });
 
-    beforeEach('The consumer1 buys some tokens', async () => {
+  describe("Consumer sells tokens", async () => {
+
+    beforeEach('Deploy the GreenDEX smart contract, The consumer1 buys some tokens',
+    async () => {
+      greenDexInstance = await GreenDEX.new({from: accounts[2]});
+      const greenTokenAddress = await greenDexInstance.greenToken();
+      greenTokenInstance = await GreenToken.at(greenTokenAddress);
       await greenDexInstance.buy({from: consumer1, value: 30});
+    });
+
+    it("the consumer1 should sell at least one token", async () => {
+      await truffleAssert.reverts(
+        greenDexInstance.sell(0, {from: consumer1})
+      );
     });
 
     it("the consumer1 should sell an amount of token less then his balance", async () => {
