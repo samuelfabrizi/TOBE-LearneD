@@ -296,6 +296,14 @@ contract("Test Announcement smart contract", accounts => {
         balanceExpected,
         "the announcement's balance should be " + balanceExpected
       );
+      // check if the validator has received the reward
+      assert.equal(
+        (await greenTokenInstance.balanceOf(
+          validator
+        )).toNumber(),
+        validatorReward,
+        "the validator's balance should be " + validatorReward
+      );
 
     });
 
