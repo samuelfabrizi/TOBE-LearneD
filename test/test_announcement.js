@@ -274,8 +274,8 @@ contract("Test Announcement smart contract", accounts => {
       greenTokenInstance = await GreenToken.at(
         await announcementInstance.greenToken()
       );
-      // the manufactuer allows the announcement to assign the rewards
-      await greenTokenInstance.approve(
+      // the manufactuer transfer the tokens (rewards) to the announcement
+      await greenTokenInstance.transfer(
         announcementInstance.address, tokensAtStake,
         {from: manufacturer}
       );
@@ -284,19 +284,25 @@ contract("Test Announcement smart contract", accounts => {
     it("the manufacturer should assign the rewards", async () => {
       await announcementInstance.endTask({from: validator});
       const validatorReward = tokensAtStake * percentageRewardValidator / 100;
-      const allowanceBeforeRewards = await greenTokenInstance.allowance(
-        manufacturer,
+      const balanceBeforeRewards = await greenTokenInstance.balanceOf(
         announcementInstance.address
       );
       await announcementInstance.assignRewards({from: manufacturer});
-      const allowanceExpected = allowanceBeforeRewards - validatorReward;
+      const balanceExpected = balanceBeforeRewards - validatorReward;
       assert.equal(
-        (await greenTokenInstance.allowance(
-          manufacturer,
+        (await greenTokenInstance.balanceOf(
           announcementInstance.address
         )).toNumber(),
-        allowanceExpected,
-        "the allowance should be " + allowanceExpected
+        balanceExpected,
+        "the announcement's balance should be " + balanceExpected
+      );
+      // check if the validator has received the reward
+      assert.equal(
+        (await greenTokenInstance.balanceOf(
+          validator
+        )).toNumber(),
+        validatorReward,
+        "the validator's balance should be " + validatorReward
       );
 
     });
@@ -304,13 +310,13 @@ contract("Test Announcement smart contract", accounts => {
     it("the manufacturer should allow the rewards assignment", async () => {
       await announcementInstance.endTask({from: validator});
       // only for testing, when we will add the wholem rewards assignment we can
-      // fixed this test
+      // modify this test
       await announcementInstance.assignRewards({from: manufacturer});
       await announcementInstance.assignRewards({from: manufacturer});
       await announcementInstance.assignRewards({from: manufacturer});
       await announcementInstance.assignRewards({from: manufacturer});
       await announcementInstance.assignRewards({from: manufacturer});
-      // now the allowance is finished
+      // now the announcement's balance is empty
       await truffleAssert.reverts(
         announcementInstance.assignRewards({from: manufacturer})
       );

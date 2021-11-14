@@ -166,10 +166,10 @@ contract Announcement {
     uint validatorReward = tokensAtStake.mul(
       percentageRewardValidator).div(100);
     require(
-      greenToken.allowance(manufacturerAddress, address(this)) >= validatorReward,
-      "Insufficient Allowance"
+      greenToken.balanceOf(address(this)) >= validatorReward,
+      "Insufficient balance"
     );
-    greenToken.transferFrom(manufacturerAddress, validatorAddress, validatorReward);
+    greenToken.transfer(validatorAddress, validatorReward);
 
   }
 
