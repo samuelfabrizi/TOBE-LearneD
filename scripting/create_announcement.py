@@ -142,14 +142,13 @@ if __name__ == '__main__':
     dex_contract = web3.eth.contract(address=token_contract_address, abi=token_contract_abi)
     logger.info("Fetched GreenToken contract from %s", token_contract_address)
 
-    # approve the transfer of the tokens (reward)
-    # by the announcement contract from the manufacturer's balance
-    dex_contract.functions.approve(
+    # transfer of the tokens (reward) from the manufacturer to the announcement
+    dex_contract.functions.transfer(
         announcement_contract_address,
         args.n_tokens_at_stake
     ).transact({'from': manufacturer_address})
     validator_reward = int(int(args.n_tokens_at_stake) * int(args.percentage_reward_validator) / 100)
-    logger.info("The approve function has been correctly called")
+    logger.info("The tokens' transfer has been correctly carried out")
     logger.info("Total number of tokens:  %s", args.n_tokens_at_stake)
     logger.info("Total reward for the validator: %s", validator_reward)
     logger.info("Total reward for the participants: %s", int(args.n_tokens_at_stake) - validator_reward)
