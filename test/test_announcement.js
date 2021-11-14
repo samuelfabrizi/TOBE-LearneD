@@ -7,14 +7,14 @@ const taskConfiguration = "path/task/configuration.json";
 const maxNumberParticipant = 2;
 const tokensAtStake = 100000000;
 const percentageRewardValidator = 20;
-
+const percentageParticipantsReward = [20, 80];
 
 contract("Test Announcement smart contract", accounts => {
   const manufacturer = accounts[0];
   const consumer1 = accounts[1];
   const consumer2 = accounts[2];
   const consumer3 = accounts[3];
-  const validator = accounts[9];
+  const validator = accounts[5];
 
   describe("Announcement SC initialization", async () => {
 
@@ -235,18 +235,27 @@ contract("Test Announcement smart contract", accounts => {
     });
 
     it("the validator should define the end of the task", async () => {
-      await announcementInstance.endTask({from: validator});
+      await announcementInstance.endTask(percentageParticipantsReward, {from: validator});
       assert.equal(
         await announcementInstance.isFinished(),
         true,
         "The task should be finished"
       );
-
+      assert.equal(
+        await announcementInstance.percentageParticipantsReward(0),
+        percentageParticipantsReward[0],
+        "The reward of consumer1 should be " + percentageParticipantsReward[0]
+      );
+      assert.equal(
+        await announcementInstance.percentageParticipantsReward(1),
+        percentageParticipantsReward[1],
+        "The reward of consumer1 should be " + percentageParticipantsReward[1]
+      );
     });
 
     it("should reject the end task call (wrong caller)", async () => {
       await truffleAssert.reverts(
-        announcementInstance.endTask({from: consumer1})
+        announcementInstance.endTask(percentageParticipantsReward, {from: consumer1})
       );
 
     });
@@ -281,20 +290,26 @@ contract("Test Announcement smart contract", accounts => {
       );
     });
 
-    it("the manufacturer should assign the rewards", async () => {
-      await announcementInstance.endTask({from: validator});
-      const validatorReward = tokensAtStake * percentageRewardValidator / 100;
-      const balanceBeforeRewards = await greenTokenInstance.balanceOf(
-        announcementInstance.address
+    it("the task should be finished before the rewards assignment", async () => {
+      await truffleAssert.reverts(
+        announcementInstance.assignRewards({from: manufacturer})
       );
+
+    });
+
+    it("the manufacturer should assign the rewards", async () => {
+      await announcementInstance.endTask(percentageParticipantsReward, {from: validator});
+      const validatorReward = tokensAtStake * percentageRewardValidator / 100;
+      const remainingReward = tokensAtStake - validatorReward;
+      const consumer1Reward = remainingReward * percentageParticipantsReward[0] / 100;
+      const consumer2Reward = remainingReward * percentageParticipantsReward[1] / 100;
       await announcementInstance.assignRewards({from: manufacturer});
-      const balanceExpected = balanceBeforeRewards - validatorReward;
       assert.equal(
         (await greenTokenInstance.balanceOf(
           announcementInstance.address
         )).toNumber(),
-        balanceExpected,
-        "the announcement's balance should be " + balanceExpected
+        0,
+        "the announcement's balance should be empty"
       );
       // check if the validator has received the reward
       assert.equal(
@@ -304,26 +319,29 @@ contract("Test Announcement smart contract", accounts => {
         validatorReward,
         "the validator's balance should be " + validatorReward
       );
-
-    });
-
-    it("the manufacturer should allow the rewards assignment", async () => {
-      await announcementInstance.endTask({from: validator});
-      // only for testing, when we will add the wholem rewards assignment we can
-      // modify this test
-      await announcementInstance.assignRewards({from: manufacturer});
-      await announcementInstance.assignRewards({from: manufacturer});
-      await announcementInstance.assignRewards({from: manufacturer});
-      await announcementInstance.assignRewards({from: manufacturer});
-      await announcementInstance.assignRewards({from: manufacturer});
-      // now the announcement's balance is empty
-      await truffleAssert.reverts(
-        announcementInstance.assignRewards({from: manufacturer})
+      // check if the consumers have received the rewards
+      assert.equal(
+        (await greenTokenInstance.balanceOf(
+          consumer1
+        )).toNumber(),
+        consumer1Reward,
+        "The balance of the consumer1 should be " + consumer1Reward
+      );
+      assert.equal(
+        (await greenTokenInstance.balanceOf(
+          consumer2
+        )).toNumber(),
+        consumer2Reward,
+        "The balance of the consumer2 should be " + consumer2Reward
       );
 
     });
 
-    it("the task should be finished before the rewards assignment", async () => {
+    it("the announcement's balance should be enough to cover the rewards",
+    async () => {
+      await announcementInstance.endTask(percentageParticipantsReward, {from: validator});
+      announcementInstance.assignRewards({from: manufacturer});
+      // now the announcement's balance should be empty
       await truffleAssert.reverts(
         announcementInstance.assignRewards({from: manufacturer})
       );

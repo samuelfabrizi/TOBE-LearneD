@@ -114,5 +114,6 @@ if __name__ == '__main__':
         # stop and join the observer
         validator_observer.stop()
         validator_observer.join()
+    # TODO: the validator should call the endTask function of the Announcement SC
     logger.info("The validator terminated his work with success")
     sys.exit(0)

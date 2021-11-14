@@ -32,10 +32,12 @@ contract Announcement {
   mapping(address => bool) private participants;
   // mapping from participant address to participant id
   mapping(address => uint8) private participant2id;
-  // array of participants' identifier
-  bool[] public participantsIdentifier;
+  // array of participants' addresses
+  address[] public participantsAddress;
   // participants' identifiers
   uint8[] public participantIds;
+  // array of reward percentage to assign to each participant
+  uint8[] public percentageParticipantsReward;
   // boolean variable that indicates if the task is finished (true)
   bool public isFinished = false;
   // address of the validator (trusted)
@@ -138,7 +140,7 @@ contract Announcement {
       tokensAtStake = _tokensAtStake;
       percentageRewardValidator = _percentageRewardValidator;
       currentNumberParticipant = 0;
-      participantsIdentifier = new bool[](maxNumberParticipant);
+      participantsAddress = new address[](maxNumberParticipant);
       validatorAddress =_validatorAddress;
   }
 
@@ -146,7 +148,7 @@ contract Announcement {
   function subscribe() public notAlreadyStarted() newSubscription() {
     participants[msg.sender] = true;
     participant2id[msg.sender] = currentNumberParticipant;
-    participantsIdentifier[currentNumberParticipant] = true;
+    participantsAddress[currentNumberParticipant] = msg.sender;
     currentNumberParticipant = currentNumberParticipant + 1;
   }
 
@@ -157,19 +159,27 @@ contract Announcement {
   }
 
   /// @notice Defines the end of task
-  function endTask() public onlyValidator() {
+  /// @param _percentageParticipantsReward array of participants' rewards (percentage)
+  function endTask(uint8[] memory _percentageParticipantsReward) public onlyValidator() {
+    percentageParticipantsReward = _percentageParticipantsReward;
     isFinished = true;
   }
 
   /// @notice Assigns the rewards to both validator and participants
   function assignRewards() public taskFinished() onlyManufacturer() {
-    uint validatorReward = tokensAtStake.mul(
-      percentageRewardValidator).div(100);
     require(
-      greenToken.balanceOf(address(this)) >= validatorReward,
+      greenToken.balanceOf(address(this)) >= tokensAtStake,
       "Insufficient balance"
     );
+    uint validatorReward = tokensAtStake.mul(
+      percentageRewardValidator).div(100);
     greenToken.transfer(validatorAddress, validatorReward);
+    uint256 remainingReward = tokensAtStake.sub(validatorReward);
+    for (uint i = 0; i < currentNumberParticipant; i++){
+      uint256 rewardParticipant = remainingReward.mul(
+        percentageParticipantsReward[i]).div(100);
+      greenToken.transfer(participantsAddress[i], rewardParticipant);
+    }
 
   }
 
