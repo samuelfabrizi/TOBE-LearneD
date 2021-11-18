@@ -70,7 +70,7 @@ class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
     def __init__(self, participant_ids, announcement_config, test_set_path,
-                 model_weights_new_round_path, method):
+                 model_weights_new_round_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
@@ -78,7 +78,6 @@ class Aggregator:
         :param test_set_path: file path to the test set
         :param model_weights_new_round_path: path to the directory that will contain the
             new model's weights (one for each round)
-        :param method: method used to aggregate the participants' local models
         """
         self.participant_ids = participant_ids
         self.announcement_config = announcement_config
@@ -91,7 +90,7 @@ class Aggregator:
         self.current_round = 0
         self.model_weights_new_round_path = model_weights_new_round_path
         self.contribution_extractor = ContributionsExtractorCreator.factory_method(
-            method,
+            announcement_config.aggregation_method,
             self.global_model,
             self.x_test,
             self.y_test

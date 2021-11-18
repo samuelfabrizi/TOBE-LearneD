@@ -97,8 +97,7 @@ if __name__ == '__main__':
         list(range(number_participants)),
         announcement_configuration,
         args.test_set_path,
-        args.model_weights_new_round_path,
-        None
+        args.model_weights_new_round_path
     )
     aggregator_handler = ValidatorHandler(aggregator=aggregator)
     path = "."

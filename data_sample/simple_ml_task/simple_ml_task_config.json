@@ -1,4 +1,4 @@
- {
+{
 	"task_name": "simple_ml_task",
 	"task_description": "The task proposed is a supervised binary classification task with random generated data",
 	"baseline_model_artifact": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/linear_model",
@@ -9,5 +9,6 @@
 		"labels": "y"
 	},
 	"fl_rounds": 2,
-	"epochs": 2
+	"epochs": 2,
+	"aggregation_method": "ensamble_general"
 }
