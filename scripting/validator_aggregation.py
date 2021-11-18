@@ -92,11 +92,13 @@ if __name__ == '__main__':
         else:
             isStarted = True
 
+    # TODO: add aggregation method automatically from the json config of the task
     aggregator = Aggregator(
         list(range(number_participants)),
         announcement_configuration,
         args.test_set_path,
-        args.model_weights_new_round_path
+        args.model_weights_new_round_path,
+        None
     )
     aggregator_handler = ValidatorHandler(aggregator=aggregator)
     path = "."
@@ -110,10 +112,13 @@ if __name__ == '__main__':
     try:
         while not aggregator.is_finished:
             time.sleep(1)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as e:
         # stop and join the observer
         validator_observer.stop()
         validator_observer.join()
+        logger.exception(e)
+        logger.error("The validator did not completed his work")
+        sys.exit(-1)
     # TODO: the validator should call the endTask function of the Announcement SC
     logger.info("The validator terminated his work with success")
     sys.exit(0)
