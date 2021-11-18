@@ -6,10 +6,10 @@ import os
 from pathlib import Path
 
 import pandas as pd
-from scipy.special import softmax
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
+from decentralized_smart_grid_ml.federated_learning.contributions_extractor import ContributionsExtractorCreator
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
     load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -70,7 +70,7 @@ class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
     def __init__(self, participant_ids, announcement_config, test_set_path,
-                 model_weights_new_round_path):
+                 model_weights_new_round_path, method):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
@@ -78,6 +78,7 @@ class Aggregator:
         :param test_set_path: file path to the test set
         :param model_weights_new_round_path: path to the directory that will contain the
             new model's weights (one for each round)
+        :param method: method used to aggregate the participants' local models
         """
         self.participant_ids = participant_ids
         self.announcement_config = announcement_config
@@ -89,6 +90,12 @@ class Aggregator:
         self._initialize_rounds2participants()
         self.current_round = 0
         self.model_weights_new_round_path = model_weights_new_round_path
+        self.contribution_extractor = ContributionsExtractorCreator.factory_method(
+            method,
+            self.global_model,
+            self.x_test,
+            self.y_test
+        )
         self.is_finished = False
 
     def _initialize_rounds2participants(self):
@@ -162,33 +169,17 @@ class Aggregator:
             is_completed = False
         return is_completed
 
-    def _compute_participants_contribution(self, models_weights, participant_ids):
-        """
-        Computes the participants' contribution
-        :param models_weights: participants models' weights (one for each participant in this round)
-        :param participant_ids: participants' identifier (one for each participant in this round)
-        :return: vector of the contribution
-        """
-
-        evaluation_participants = []
-        for model_weight in models_weights:
-            self.global_model.set_weights(model_weight)
-            evaluation_participants.append(self.global_model.evaluate(self.x_test, self.y_test)[1])
-        alpha = softmax(evaluation_participants)
-
-        logger.info(
-            "Alpha vector for round %d is %s relative to participant ids %s",
-            self.current_round, alpha, participant_ids
-        )
-        return alpha
-
     def update_global_model(self):
         """
         Updates the global model and save both contribution and the evalution of the new model
         :return:
         """
-        alpha = self._compute_participants_contribution(
+        alpha = self.contribution_extractor.compute_contribution(
             self.rounds2participants[self.current_round]["participant_weights"],
+        )
+        logger.info(
+            "Alpha vector for round %d is %s relative to participant ids %s",
+            self.current_round, alpha,
             self.rounds2participants[self.current_round]["participant_ids"]
         )
         # save the alpha vector (contribution) in the dictionary
