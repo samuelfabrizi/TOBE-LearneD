@@ -22,6 +22,7 @@ def split_dataset_validator_participants(dataset_path, n_participants, test_size
     :param random_state: random state used for reproducibility
     :param test_size: represents the proportion of the dataset to include in the test split
     :param shuffle: if it is True, the dataset is shuffled
+    :param unbalanced: if it is true, the participants' dataset will be unbalanced
     :return: (dataset_test, participants_dataset) where
             dataset_test is the validator's test split
             participants_dataset are n_participants dataset, one for each participant
