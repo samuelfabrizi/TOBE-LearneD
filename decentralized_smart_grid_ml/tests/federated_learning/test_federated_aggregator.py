@@ -303,3 +303,36 @@ class TestFederatedAggregator(unittest.TestCase):
         )
         self.assertEqual(1, aggregator.current_round)
         self.assertEqual(True, aggregator.is_finished)
+
+    @patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.softmax')
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_get_participants_contributions(self, aggregator_init_mock, announcement_config_mock, softmax_mock):
+        aggregator = Aggregator()
+        announcement_config_mock.fl_rounds = 3
+        aggregator.announcement_config = announcement_config_mock
+        aggregator.participant_ids = [0, 1, 2]
+        # here we assume that it is possible to take only a subset of participants
+        # for each round (general case)
+        aggregator.rounds2participants = {
+            0: {
+                "participant_ids": [1, 2],
+                "alpha": [0.6, 0.4]
+            },
+            1: {
+                "participant_ids": [0, 1, 2],
+                "alpha": [0.3, 0.4, 0.3]
+            },
+            2: {
+                "participant_ids": [0, 1],
+                "alpha": [0.7, 0.3]
+            }
+        }
+        final_contributions_expected = [0.5, 0.43, 0.35]
+        softmax_final_contributions_expected = [0.36, 0.33, 0.31]
+        softmax_mock.return_value = softmax_final_contributions_expected
+        final_contributions = aggregator.get_participants_contributions()
+        softmax_mock.assert_called_with(final_contributions_expected)
+        self.assertListEqual(softmax_final_contributions_expected, final_contributions)

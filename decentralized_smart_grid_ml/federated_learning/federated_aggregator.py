@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import pandas as pd
+from scipy.special import softmax
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
@@ -104,7 +105,9 @@ class Aggregator:
         """
         for idx_round in range(self.announcement_config.fl_rounds):
             self.rounds2participants[idx_round] = {
-                # TODO: takes a subset of the participant ids at each round
+                # here the first key is not need for our purpose. In a future,
+                # it will be possible to use it to take only a subset
+                # of participants for each round
                 "valid_participant_ids": self.participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
@@ -213,3 +216,28 @@ class Aggregator:
         output_folder = Path(self.model_weights_new_round_path)
         output_folder.mkdir(parents=True, exist_ok=True)
         save_fl_model_weights(self.global_model, baseline_file_name)
+
+    def get_participants_contributions(self):
+        participant_id2contributions_count = {}
+        for participant_id in self.participant_ids:
+            # here the key is the participant id while
+            # the value is a pair (tot_contribution, count) where
+            # tot_contribution is the sum of the participants' contribution
+            # count is the number of rounds in which he participated
+            participant_id2contributions_count[participant_id] = (0, 0)
+        for idx_round in range(self.announcement_config.fl_rounds):
+            fl_round_participants = self.rounds2participants[idx_round]["participant_ids"]
+            contributions = self.rounds2participants[idx_round]["alpha"]
+            for participant_id, contribution in zip(fl_round_participants, contributions):
+                participant_id2contributions_count[participant_id] = (
+                    # update total contribution
+                    participant_id2contributions_count[participant_id][0] + contribution,
+                    # update number of rounds in which he participated
+                    participant_id2contributions_count[participant_id][1] + 1
+                )
+        weighted_contributions = []
+        for participant_id, (total_contribution, count) in \
+                participant_id2contributions_count.items():
+            weighted_contributions.append(round(total_contribution / count, 2))
+        softmax_weighted_contributions = softmax(weighted_contributions)
+        return [round(contribution, 2) for contribution in softmax_weighted_contributions]

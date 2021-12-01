@@ -118,6 +118,12 @@ if __name__ == '__main__':
         logger.exception(e)
         logger.error("The validator did not completed his work")
         sys.exit(-1)
-    # TODO: the validator should call the endTask function of the Announcement SC
+    participants_contributions = aggregator.get_participants_contributions()
+    percentage_participants_contributions = [
+        contribution * 100 for contribution in participants_contributions
+    ]
+    contract.functions.endTask(percentage_participants_contributions).transact(
+        {'from': validator_address}
+    )
     logger.info("The validator terminated his work with success")
     sys.exit(0)
