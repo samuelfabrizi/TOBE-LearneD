@@ -9,6 +9,6 @@
 		"labels": "y"
 	},
 	"fl_rounds": 2,
-	"epochs": 2,
+	"epochs": 1,
 	"aggregation_method": "ensamble_general"
 }
