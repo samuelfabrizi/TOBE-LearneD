@@ -45,8 +45,6 @@ if __name__ == '__main__':
         help="The directory path to the model's weights for each round",
         required=True
     )
-    # TODO: this argument has to be removed when we implemented the communication between
-    #       validator and participants
     parser.add_argument(
         '--participant_weights_path',
         dest='participant_weights_path',
