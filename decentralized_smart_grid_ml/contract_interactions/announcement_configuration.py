@@ -15,7 +15,7 @@ class AnnouncementConfiguration:
 
     def __init__(self, task_name, task_description, baseline_model_artifact,
                  baseline_model_weights, baseline_model_config, features_names,
-                 fl_rounds, epochs):
+                 fl_rounds, epochs, aggregation_method):
         """
         Constructor
         :param task_name: name of the task
@@ -26,6 +26,7 @@ class AnnouncementConfiguration:
         :param features_names: features name of the dataset (features and labels)
         :param fl_rounds: number of federated rounds
         :param epochs: number of epochs
+        :param aggregation_method: method used to aggregate the participants' models
         """
         self.task_name = task_name
         self.task_description = task_description
@@ -35,6 +36,7 @@ class AnnouncementConfiguration:
         self.features_names = features_names
         self.fl_rounds = fl_rounds
         self.epochs = epochs
+        self.aggregation_method = aggregation_method
 
     @classmethod
     def retrieve_announcement_configuration(cls, user_address, contract_instance):
@@ -48,20 +50,9 @@ class AnnouncementConfiguration:
         config_task_path = contract_instance.functions.taskConfiguration().call(
             {"from": user_address}
         )
-        logger.info("Configuration file path %s extract with success", config_task_path)
-        with open(config_task_path, "r") as file_read:
-            json_config_task = json.load(file_read)
-        announcement_config = cls(
-            json_config_task["task_name"],
-            json_config_task["task_description"],
-            json_config_task["baseline_model_artifact"],
-            json_config_task["baseline_model_weights"],
-            json_config_task["baseline_model_config"],
-            json_config_task["features_names"],
-            json_config_task["fl_rounds"],
-            json_config_task["epochs"]
-        )
-        return announcement_config
+        logger.info("Configuration file path %s extract with success from the blockchain",
+                    config_task_path)
+        return AnnouncementConfiguration.read_json_config(config_task_path)
 
     @classmethod
     def read_json_config(cls, config_path):
@@ -80,6 +71,7 @@ class AnnouncementConfiguration:
             json_config_task["baseline_model_config"],
             json_config_task["features_names"],
             json_config_task["fl_rounds"],
-            json_config_task["epochs"]
+            json_config_task["epochs"],
+            json_config_task["aggregation_method"]
         )
         return announcement_config

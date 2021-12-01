@@ -3,6 +3,7 @@ This script permits the automatic initialization of an Announcement smart contra
 """
 import argparse
 import json
+import sys
 import time
 
 import pandas as pd
@@ -155,13 +156,18 @@ if __name__ == '__main__':
 
     is_finished = False
 
-    while not is_finished:
-        if announcement_contract.functions.isFinished().call({'from': manufacturer_address}):
-            is_finished = True
-        else:
-            logger.debug("Waiting the end of the task")
-            time.sleep(5)
-
+    try:
+        while not is_finished:
+            if announcement_contract.functions.isFinished().call({'from': manufacturer_address}):
+                is_finished = True
+            else:
+                logger.debug("Waiting the end of the task")
+                time.sleep(5)
+    except KeyboardInterrupt as e:
+        logger.exception(e)
+        logger.error("The manufacturer did not completed his work")
+        sys.exit(-1)
     logger.info("The task is finished")
     announcement_contract.functions.assignRewards().transact({'from': manufacturer_address})
     logger.info("The rewards have been assigned")
+    sys.exit(0)

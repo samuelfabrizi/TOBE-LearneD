@@ -121,9 +121,12 @@ if __name__ == '__main__':
     try:
         while not federated_local_trainer.is_finished:
             time.sleep(1)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as e:
         # stop and join the observer
         participant_observer.stop()
         participant_observer.join()
+        logger.exception(e)
+        logger.error("The participant %s did not completed his work", participant_id)
+        sys.exit(-1)
     logger.info("The participant %s terminated his work with success", participant_id)
     sys.exit(0)
