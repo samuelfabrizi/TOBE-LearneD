@@ -75,7 +75,7 @@ if __name__ == '__main__':
     logger.info("Fetched contract %s", announcement_contract_address)
 
     # automatically takes the last address
-    validator_address = web3.eth.accounts[9]
+    validator_address = web3.eth.accounts[5]
     # extract the Announcement information from the smart contract
     announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
         validator_address, contract
@@ -119,8 +119,10 @@ if __name__ == '__main__':
         logger.error("The validator did not completed his work")
         sys.exit(-1)
     participants_contributions = aggregator.get_participants_contributions()
+    logger.info("Participants identifiers: %s", aggregator.participant_ids)
+    logger.info("Final contributions: %s", participants_contributions)
     percentage_participants_contributions = [
-        contribution * 100 for contribution in participants_contributions
+        int(contribution * 100) for contribution in participants_contributions
     ]
     contract.functions.endTask(percentage_participants_contributions).transact(
         {'from': validator_address}
