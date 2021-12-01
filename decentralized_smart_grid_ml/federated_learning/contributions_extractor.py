@@ -1,3 +1,6 @@
+"""
+This module contains classes and functions used to compute the participants' contribution
+"""
 from abc import abstractmethod
 
 from scipy.special import softmax
@@ -9,20 +12,40 @@ logger = create_logger(__name__)
 
 
 class ContributionsExtractorCreator:
+    """
+    This class contains the factory method used to create a
+    ContributionsExtractor
+    """
 
     @staticmethod
     def factory_method(method, model, x_test, y_test):
+        """
+        Creates a ContributionsExtractor instance
+        :param method: method used for the contribution extraction
+        :param model: global model structure
+        :param x_test: test features
+        :param y_test: test labels
+        :return: ContributionsExtracto instance
+        """
         if method is None or method == "ensamble_general":
             # default method
             return ContributionsExtractorEnsambleGeneral(model, x_test, y_test)
-        else:
-            logger.error("The method '%s' is not valid", method)
-            raise NotValidAggregationMethod("The given method is not valid")
+        logger.error("The method '%s' is not valid", method)
+        raise NotValidAggregationMethod("The given method is not valid")
 
 
 class ContributionsExtractor:
+    """
+    Superclass that represents a ContributionsExtractor
+    """
 
     def __init__(self, model, x_test, y_test):
+        """
+        Initializes the ContributionsExtractor
+        :param model: global model structure
+        :param x_test: test features
+        :param y_test: test labels
+        """
         if model is None or x_test is None or y_test is None:
             logger.error("The arguments %s are not correct", [model, x_test, y_test])
             raise ValueError("The input arguments are not valid")
@@ -41,7 +64,10 @@ class ContributionsExtractor:
 
 
 class ContributionsExtractorEnsambleGeneral(ContributionsExtractor):
-
+    """
+    This class contains the logic to extract the participants' contribution using
+    an ensamble model based on the local models' output
+    """
     def compute_contribution(self, models_weights):
         evaluation_participants = []
         for model_weight in models_weights:

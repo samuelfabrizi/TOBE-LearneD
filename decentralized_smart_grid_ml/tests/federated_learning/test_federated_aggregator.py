@@ -72,6 +72,7 @@ class TestFederatedAggregator(unittest.TestCase):
             "features": ["x1", "x2"],
             "labels": "y"
         }
+        announcement_config_mock.aggregation_method = "ensamble_general"
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
@@ -97,8 +98,7 @@ class TestFederatedAggregator(unittest.TestCase):
             participant_ids,
             announcement_config_mock,
             test_set_path,
-            model_weights_new_round_path,
-            None
+            model_weights_new_round_path
         )
         read_csv_mock.assert_called_with(test_set_path)
         load_fl_model_mock.assert_called_with(global_model_path)
@@ -303,3 +303,32 @@ class TestFederatedAggregator(unittest.TestCase):
         )
         self.assertEqual(1, aggregator.current_round)
         self.assertEqual(True, aggregator.is_finished)
+
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_get_participants_contributions(self, aggregator_init_mock, announcement_config_mock):
+        aggregator = Aggregator()
+        announcement_config_mock.fl_rounds = 3
+        aggregator.announcement_config = announcement_config_mock
+        aggregator.participant_ids = [0, 1, 2]
+        # here we assume that it is possible to take only a subset of participants
+        # for each round (general case)
+        aggregator.rounds2participants = {
+            0: {
+                "participant_ids": [1, 2],
+                "alpha": [0.6, 0.4]
+            },
+            1: {
+                "participant_ids": [0, 1, 2],
+                "alpha": [0.3, 0.4, 0.3]
+            },
+            2: {
+                "participant_ids": [0, 1],
+                "alpha": [0.7, 0.3]
+            }
+        }
+        final_contributions_expected = [0.33, 0.43, 0.23]
+        final_contributions = aggregator.get_participants_contributions()
+        self.assertListEqual(final_contributions_expected, final_contributions)

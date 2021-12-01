@@ -3,6 +3,7 @@ This module contains the functions used to interact with the Announcement Smart 
 """
 import json
 
+from decentralized_smart_grid_ml.exceptions import MalformedConfigurationJson
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
 logger = create_logger(__name__)
@@ -63,15 +64,20 @@ class AnnouncementConfiguration:
         """
         with open(config_path, "r") as file_read:
             json_config_task = json.load(file_read)
-        announcement_config = cls(
-            json_config_task["task_name"],
-            json_config_task["task_description"],
-            json_config_task["baseline_model_artifact"],
-            json_config_task["baseline_model_weights"],
-            json_config_task["baseline_model_config"],
-            json_config_task["features_names"],
-            json_config_task["fl_rounds"],
-            json_config_task["epochs"],
-            json_config_task["aggregation_method"]
-        )
+        try:
+            announcement_config = cls(
+                json_config_task["task_name"],
+                json_config_task["task_description"],
+                json_config_task["baseline_model_artifact"],
+                json_config_task["baseline_model_weights"],
+                json_config_task["baseline_model_config"],
+                json_config_task["features_names"],
+                json_config_task["fl_rounds"],
+                json_config_task["epochs"],
+                json_config_task["aggregation_method"]
+            )
+        except KeyError as key_error:
+            logger.error("One or more key are missing in the "
+                         "json configuration file %s", config_path)
+            raise MalformedConfigurationJson from key_error
         return announcement_config

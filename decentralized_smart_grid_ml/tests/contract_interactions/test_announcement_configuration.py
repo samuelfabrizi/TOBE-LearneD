@@ -2,17 +2,19 @@ import unittest
 from unittest.mock import MagicMock, patch, mock_open
 
 from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import AnnouncementConfiguration
+from decentralized_smart_grid_ml.exceptions import MalformedConfigurationJson
 
 json_config = {
-            "task_name": "test name",
-            "task_description": "test description",
-            "baseline_model_artifact": "test artifact",
-            "baseline_model_weights": "test weights",
-            "baseline_model_config": "test config",
-            "features_names": "test features",
-            "fl_rounds": 2,
-            "epochs": 2,
-        }
+    "task_name": "test name",
+    "task_description": "test description",
+    "baseline_model_artifact": "test artifact",
+    "baseline_model_weights": "test weights",
+    "baseline_model_config": "test config",
+    "features_names": "test features",
+    "fl_rounds": 2,
+    "epochs": 2,
+    "aggregation_method": "test aggregation"
+}
 
 
 class TestAnnouncementConfiguration(unittest.TestCase):
@@ -37,8 +39,28 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual("test weights", announcement_config.baseline_model_weights)
         self.assertEqual("test config", announcement_config.baseline_model_config)
         self.assertEqual("test features", announcement_config.features_names)
+        self.assertEqual("test features", announcement_config.features_names)
+        self.assertEqual("test aggregation", announcement_config.aggregation_method)
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)
+
+    @patch("json.load")
+    def test_retrieve_announcement_configuration_malformed(self, json_load_mock):
+        m_o = mock_open()
+        config_path = "/test/config/path.json"
+        fake_address = "address test"
+        json_config_malformed = {
+            "task_name": "test name"
+        }
+        json_load_mock.return_value = json_config_malformed
+        contract_mock = MagicMock()
+        contract_mock.functions.taskConfiguration().call.return_value = config_path
+        with self.assertRaises(MalformedConfigurationJson):
+            with patch("decentralized_smart_grid_ml.contract_interactions.announcement_configuration.open", m_o):
+                announcement_config = AnnouncementConfiguration.retrieve_announcement_configuration(
+                    fake_address,
+                    contract_mock
+                )
 
     @patch("json.load")
     def test_write_json_config(self, json_load_mock):
@@ -56,5 +78,6 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual("test weights", announcement_config.baseline_model_weights)
         self.assertEqual("test config", announcement_config.baseline_model_config)
         self.assertEqual("test features", announcement_config.features_names)
+        self.assertEqual("test aggregation", announcement_config.aggregation_method)
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)

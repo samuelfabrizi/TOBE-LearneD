@@ -9,7 +9,8 @@ import pandas as pd
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
-from decentralized_smart_grid_ml.federated_learning.contributions_extractor import ContributionsExtractorCreator
+from decentralized_smart_grid_ml.federated_learning.contributions_extractor import \
+    ContributionsExtractorCreator
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
     load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -104,7 +105,9 @@ class Aggregator:
         """
         for idx_round in range(self.announcement_config.fl_rounds):
             self.rounds2participants[idx_round] = {
-                # TODO: takes a subset of the participant ids at each round
+                # here the first key is not need for our purpose. In a future,
+                # it will be possible to use it to take only a subset
+                # of participants for each round
                 "valid_participant_ids": self.participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
@@ -213,3 +216,28 @@ class Aggregator:
         output_folder = Path(self.model_weights_new_round_path)
         output_folder.mkdir(parents=True, exist_ok=True)
         save_fl_model_weights(self.global_model, baseline_file_name)
+
+    def get_participants_contributions(self):
+        """
+        Computes the participants' contribution considering the partial
+        contribution obtained at each round
+        :return: list of contributions (sum up to 1). The i-th contribution
+            corresponds to the i-th participants (same positions of self.participant_ids)
+        """
+        participant_id2contributions_count = {}
+        for participant_id in self.participant_ids:
+            # here the key is the participant id while
+            # the value is the sum of the participants' contribution
+            participant_id2contributions_count[participant_id] = 0
+        for idx_round in range(self.announcement_config.fl_rounds):
+            fl_round_participants = self.rounds2participants[idx_round]["participant_ids"]
+            contributions = self.rounds2participants[idx_round]["alpha"]
+            for participant_id, contribution in zip(fl_round_participants, contributions):
+                participant_id2contributions_count[participant_id] += contribution
+        weighted_contributions = []
+        for participant_id, total_contribution in \
+                participant_id2contributions_count.items():
+            weighted_contributions.append(round(
+                total_contribution / self.announcement_config.fl_rounds, 2)
+            )
+        return weighted_contributions
