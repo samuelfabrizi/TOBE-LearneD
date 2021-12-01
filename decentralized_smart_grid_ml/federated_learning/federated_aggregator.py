@@ -10,7 +10,8 @@ from scipy.special import softmax
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
-from decentralized_smart_grid_ml.federated_learning.contributions_extractor import ContributionsExtractorCreator
+from decentralized_smart_grid_ml.federated_learning.contributions_extractor import \
+    ContributionsExtractorCreator
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
     load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -218,6 +219,12 @@ class Aggregator:
         save_fl_model_weights(self.global_model, baseline_file_name)
 
     def get_participants_contributions(self):
+        """
+        Computes the participants' contribution considering the partial
+        contribution obtained at each round
+        :return: list of contributions (sum up to 1). The i-th contribution
+            corresponds to the i-th participants (same positions of self.participant_ids)
+        """
         participant_id2contributions_count = {}
         for participant_id in self.participant_ids:
             # here the key is the participant id while
