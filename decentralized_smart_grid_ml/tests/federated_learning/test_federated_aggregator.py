@@ -72,6 +72,7 @@ class TestFederatedAggregator(unittest.TestCase):
             "features": ["x1", "x2"],
             "labels": "y"
         }
+        announcement_config_mock.aggregation_method = "ensamble_general"
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
         read_csv_mock.return_value = pd.DataFrame({
@@ -97,8 +98,7 @@ class TestFederatedAggregator(unittest.TestCase):
             participant_ids,
             announcement_config_mock,
             test_set_path,
-            model_weights_new_round_path,
-            None
+            model_weights_new_round_path
         )
         read_csv_mock.assert_called_with(test_set_path)
         load_fl_model_mock.assert_called_with(global_model_path)
