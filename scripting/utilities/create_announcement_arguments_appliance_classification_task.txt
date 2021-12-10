@@ -1,0 +1,12 @@
+--contract_info_path
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json
+--task_config_path
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/appliance_classification_task_config.json
+--test_set_path
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/validator/simple_ml_task_test.csv
+--n_tokens_at_stake
+100000
+--max_number_participants
+3
+--percentage_reward_validator
+20
