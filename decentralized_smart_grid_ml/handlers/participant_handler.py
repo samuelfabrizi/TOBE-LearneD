@@ -2,6 +2,8 @@
 This module contains the Participant Handler class used to trigger the functions
 used to train the local model when a new global model is available
 """
+from time import sleep
+
 from watchdog.events import FileSystemEventHandler
 
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -27,6 +29,7 @@ class ParticipantHandler(FileSystemEventHandler):
         :param event: event generated
         :return:
         """
+        sleep(1)
         if not self.federated_local_trainer.is_finished:
             logger.info("The file %s has been created", event.src_path)
             if self.federated_local_trainer.fit_local_model(event.src_path):
