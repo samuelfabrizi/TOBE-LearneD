@@ -27,7 +27,7 @@ class ContributionsExtractorCreator:
         :param y_test: test labels
         :return: ContributionsExtracto instance
         """
-        if method is None or method == "ensamble_general":
+        if method == "ensamble_general":
             # default method
             return ContributionsExtractorEnsambleGeneral(model, x_test, y_test)
         logger.error("The method '%s' is not valid", method)
