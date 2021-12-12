@@ -21,13 +21,11 @@ from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNC
 logger = create_logger(__name__)
 
 
-def create_model(x_test, y_test):
-    '''
+def create_model(n_classes):
     # create a simple linear model as baseline
-    model = LinearModel(activation="sigmoid")
-    model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
-    logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
-    '''
+    #model = LinearModel(activation="sigmoid")
+    #model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
+    #logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
     # create a model for the appliance classification
     model = models.Sequential()
     model.add(layers.Dense(128, activation="relu"))
@@ -38,7 +36,6 @@ def create_model(x_test, y_test):
         loss="categorical_crossentropy",
         metrics=["accuracy"]
     )
-    model.evaluate(x_test, y_test)
     return model
 
 
@@ -103,11 +100,12 @@ if __name__ == '__main__':
     test_set = pd.read_csv(args.test_set_path)
     logger.info("Dataset loaded from %s", args.test_set_path)
 
-    x_test = test_set[announcement_config.features_names["features"]].values,
+    x_test = test_set[announcement_config.features_names["features"]].values
     y_test = test_set[announcement_config.features_names["labels"]].values
 
-    model = create_model(x_test, y_test)
-    
+    model = create_model(n_classes=len(y_test[0]))
+    model.evaluate(x_test, y_test)
+
     # save the model's artifact
     save_fl_model(model, announcement_config.baseline_model_artifact)
     # save the model's config
