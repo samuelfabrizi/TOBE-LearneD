@@ -1,0 +1,6 @@
+--contract_info_path
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json
+--participant_id
+0
+--validator_directory_path
+data_sample/simple_ml_task/validator

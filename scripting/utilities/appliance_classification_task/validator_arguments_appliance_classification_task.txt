@@ -1,0 +1,8 @@
+--contract_info_path
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json
+--test_set_path
+data_sample/appliance_classification_task/validator/appliance_classification_task_test.csv
+--participant_weights_path
+data_sample/appliance_classification_task/participants
+--model_weights_new_round_path
+data_sample/appliance_classification_task/validator/
