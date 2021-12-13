@@ -101,7 +101,7 @@ if __name__ == '__main__':
     aggregator = Aggregator(
         list(range(number_participants)),
         announcement_configuration,
-        args.test_validation_path,
+        args.validation_set_path,
         args.test_set_path,
         args.model_weights_new_round_path
     )
