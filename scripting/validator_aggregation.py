@@ -31,8 +31,8 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--validation_set_path',
-        dest='test_set_path',
-        metavar='test_set_path',
+        dest='validation_set_path',
+        metavar='validation_set_path',
         type=str,
         help='The file path to the validation set',
         required=True
