@@ -1,6 +1,6 @@
 import pathlib
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 import numpy as np
 import pandas as pd
@@ -72,14 +72,22 @@ class TestFederatedAggregator(unittest.TestCase):
             "features": ["x1", "x2"],
             "labels": "y"
         }
-        announcement_config_mock.aggregation_method = "ensamble_general"
+        announcement_config_mock.aggregation_method = "ensemble_general"
+        validation_set_path = "/path/to/validation.csv"
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
-        read_csv_mock.return_value = pd.DataFrame({
-            "x1": [0, 1],
-            "x2": [1, 2],
-            "y": [0, 1]
-        })
+        read_csv_mock.side_effect = [
+            pd.DataFrame({
+                "x1": [0, 1],
+                "x2": [1, 2],
+                "y": [0, 1]
+            }),
+            pd.DataFrame({
+                "x1": [0, 1],
+                "x2": [1, 2],
+                "y": [0, 1]
+            })
+        ]
         model_artifact = "expected model"
         load_fl_model_mock.return_value = model_artifact
         rounds2participants_expected = {
@@ -97,10 +105,14 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator = Aggregator(
             participant_ids,
             announcement_config_mock,
+            validation_set_path,
             test_set_path,
             model_weights_new_round_path
         )
-        read_csv_mock.assert_called_with(test_set_path)
+        read_csv_mock.has_calls(
+            call(test_set_path),
+            call(validation_set_path)
+        )
         load_fl_model_mock.assert_called_with(global_model_path)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
 

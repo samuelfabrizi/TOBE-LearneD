@@ -30,6 +30,14 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
+        '--validation_set_path',
+        dest='test_set_path',
+        metavar='test_set_path',
+        type=str,
+        help='The file path to the validation set',
+        required=True
+    )
+    parser.add_argument(
         '--test_set_path',
         dest='test_set_path',
         metavar='test_set_path',
@@ -90,10 +98,10 @@ if __name__ == '__main__':
         else:
             isStarted = True
 
-    # TODO: add aggregation method automatically from the json config of the task
     aggregator = Aggregator(
         list(range(number_participants)),
         announcement_configuration,
+        args.test_validation_path,
         args.test_set_path,
         args.model_weights_new_round_path
     )
