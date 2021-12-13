@@ -23,12 +23,20 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
+        '--validation_size',
+        dest='validation_size',
+        metavar='validation_size',
+        type=float,
+        help='The size of the validation set, it has to be a float value between 0 and 1.0',
+        default=0.2
+    )
+    parser.add_argument(
         '--test_size',
         dest='test_size',
         metavar='test_size',
         type=float,
         help='The size of the test set, it has to be a float value between 0 and 1.0',
-        default=0.2
+        default=0.15
     )
     parser.add_argument(
         '--n_participants',
@@ -71,9 +79,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting dataset split script")
 
-    dataset_test, datasets_participants = split_dataset_validator_participants(
+    dataset_test, dataset_validation, datasets_participants = split_dataset_validator_participants(
         args.dataset_path,
         args.n_participants,
+        args.validation_size,
         args.test_size,
         random_state=args.random_state,
         shuffle=args.shuffle,
@@ -102,6 +111,13 @@ if __name__ == '__main__':
         directory_validator,
         dataset_name + "_test.csv"
     )
-    logger.info("Test set validator saved in %s", dataset_test_path)
     # store the validator's test datasets
     dataset_test.to_csv(str(dataset_test_path))
+    logger.info("Test set validator saved in %s", dataset_test_path)
+    dataset_validation_path = os.path.join(
+        directory_validator,
+        dataset_name + "_validation.csv"
+    )
+    # store the validator's test datasets
+    dataset_validation.to_csv(str(dataset_validation_path))
+    logger.info("Validation set validator saved in %s", dataset_validation_path)
