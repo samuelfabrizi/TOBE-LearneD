@@ -79,7 +79,7 @@ if __name__ == '__main__':
     )
 
     participant_directory_path = os.path.join(
-        "data_sample",
+        "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/",
         announcement_configuration.task_name,
         "participants",
         "participant_" + str(participant_id)

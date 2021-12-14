@@ -21,11 +21,12 @@ from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNC
 logger = create_logger(__name__)
 
 
-def create_model(n_classes):
+def create_model(n_classes=None):
     # create a simple linear model as baseline
-    #model = LinearModel(activation="sigmoid")
-    #model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
-    #logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
+    model = LinearModel(activation="sigmoid")
+    model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
+    logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
+    '''
     # create a model for the appliance classification
     model = models.Sequential()
     model.add(layers.Dense(128, activation="relu"))
@@ -36,6 +37,7 @@ def create_model(n_classes):
         loss="categorical_crossentropy",
         metrics=["accuracy"]
     )
+    '''
     return model
 
 
@@ -103,7 +105,9 @@ if __name__ == '__main__':
     x_test = test_set[announcement_config.features_names["features"]].values
     y_test = test_set[announcement_config.features_names["labels"]].values
 
-    model = create_model(n_classes=len(y_test[0]))
+    model = create_model(
+    #    n_classes=len(y_test[0])
+    )
     model.evaluate(x_test, y_test)
 
     # save the model's artifact
