@@ -2,6 +2,7 @@
 This module contains both functions and classes used to aggregate the local models' weights
 in the global one
 """
+import json
 import os
 from pathlib import Path
 
@@ -245,3 +246,17 @@ class Aggregator:
                 total_contribution / self.announcement_config.fl_rounds, 2)
             )
         return weighted_contributions
+
+    def write_statistics(self, output_file_path):
+        """
+        Writes in output the statistics computed during the framework execution
+        :param output_file_path: output file path
+        :return:
+        """
+        copy_statistics = self.rounds2participants
+        for idx_round in range(self.announcement_config.fl_rounds):
+            del copy_statistics[idx_round]["participant_weights"]
+            del copy_statistics[idx_round]["valid_participant_ids"]
+        with open(output_file_path, "w") as file_read:
+            json.dump(copy_statistics, file_read)
+        logger.info("Aggregator statistics saved in %s", output_file_path)

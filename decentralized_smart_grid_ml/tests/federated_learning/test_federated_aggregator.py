@@ -1,6 +1,6 @@
 import pathlib
 import unittest
-from unittest.mock import patch, call
+from unittest.mock import patch, call, mock_open
 
 import numpy as np
 import pandas as pd
@@ -344,3 +344,36 @@ class TestFederatedAggregator(unittest.TestCase):
         final_contributions_expected = [0.33, 0.43, 0.23]
         final_contributions = aggregator.get_participants_contributions()
         self.assertListEqual(final_contributions_expected, final_contributions)
+
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("json.dump")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_write_statistics(self, aggregator_init_mock, json_dump_mock, announcement_config_mock):
+        file_output_path = "test/output.json"
+        m_o = mock_open()
+        aggregator = Aggregator()
+        announcement_config_mock.fl_rounds = 1
+        aggregator.announcement_config = announcement_config_mock
+        aggregator.rounds2participants = {
+            0: {
+                "participant_ids": "test participants ids",
+                "alpha": "test alpha",
+                "evaluation": "test evaluations",
+                "participant_weights": "test weights",
+                "valid_participant_ids": "test valid participant ids"
+            }
+        }
+        statistics_expected = {
+            0: {
+                "participant_ids": "test participants ids",
+                "alpha": "test alpha",
+                "evaluation": "test evaluations",
+            }
+        }
+        with patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.open', m_o):
+            aggregator.write_statistics(file_output_path)
+            m_o.assert_called_with(file_output_path, "w")
+            handle = m_o()
+            json_dump_mock.assert_called_with(statistics_expected, handle)

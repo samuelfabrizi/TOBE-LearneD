@@ -3,6 +3,7 @@ This script runs the Federate Learning life cycle of the validator
 """
 import argparse
 import json
+import os
 import sys
 import time
 
@@ -133,5 +134,11 @@ if __name__ == '__main__':
     contract.functions.endTask(percentage_participants_contributions).transact(
         {'from': validator_address}
     )
+
+    statistics_output_path = os.path.join(
+        args.model_weights_new_round_path,
+        "statistics.json"
+    )
+    aggregator.write_statistics(statistics_output_path)
     logger.info("The validator terminated his work with success")
     sys.exit(0)
