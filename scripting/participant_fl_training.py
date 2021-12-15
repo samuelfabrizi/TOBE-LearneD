@@ -15,7 +15,8 @@ from decentralized_smart_grid_ml.contract_interactions.announcement_configuratio
 from decentralized_smart_grid_ml.federated_learning.federated_local_trainer import FederatedLocalTrainer
 from decentralized_smart_grid_ml.handlers.participant_handler import ParticipantHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
-from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_addresses_contracts
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, \
+    get_addresses_contracts, PROJECT_ABSOLUTE_PATH
 
 logger = create_logger(__name__)
 
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     )
 
     participant_directory_path = os.path.join(
-        "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/",
+        PROJECT_ABSOLUTE_PATH + "/data_sample/",
         announcement_configuration.task_name,
         "participants",
         "participant_" + str(participant_id)
@@ -128,5 +129,12 @@ if __name__ == '__main__':
         logger.exception(e)
         logger.error("The participant %s did not completed his work", participant_id)
         sys.exit(-1)
+
+    statistics_output_path = os.path.join(
+        participant_directory_path,
+        "statistics.json"
+    )
+    federated_local_trainer.write_statistics(statistics_output_path)
+
     logger.info("The participant %s terminated his work with success", participant_id)
     sys.exit(0)

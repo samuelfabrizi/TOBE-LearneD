@@ -1,6 +1,6 @@
 import pathlib
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open
 
 import pandas as pd
 
@@ -228,3 +228,30 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         flt.participant_id = 0
         is_completed = flt.fit_local_model(path_file_created)
         self.assertEqual(False, is_completed)
+
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("json.dump")
+    @patch(
+        "decentralized_smart_grid_ml.federated_learning.federated_local_trainer.FederatedLocalTrainer.__init__",
+        return_value=None
+    )
+    def test_write_statistics(self, federated_local_trainer_mock, json_dump_mock, announcement_config_mock):
+        m_o = mock_open()
+        file_output_path = "test/output.json"
+        announcement_config_mock.fl_rounds = 1
+        flt = FederatedLocalTrainer()
+        flt.announcement_config = announcement_config_mock
+        flt.participant_id = 0
+        flt.rounds2history = {
+            0: "history test"
+        }
+        statistics_expected = {
+            0: "history test"
+        }
+        with patch('decentralized_smart_grid_ml.federated_learning.federated_local_trainer.open', m_o):
+            flt.write_statistics(file_output_path)
+            m_o.assert_called_with(file_output_path, "w")
+            handle = m_o()
+            json_dump_mock.assert_called_with(statistics_expected, handle)
