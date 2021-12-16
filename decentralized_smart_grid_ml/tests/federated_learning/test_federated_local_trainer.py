@@ -260,4 +260,4 @@ class TestFederatedLocalTrainer(unittest.TestCase):
             flt.write_statistics(file_output_path)
             m_o.assert_called_with(file_output_path, "w")
             handle = m_o()
-            json_dump_mock.assert_called_with(statistics_expected, handle)
+            json_dump_mock.assert_called_with(statistics_expected, handle, indent="\t")

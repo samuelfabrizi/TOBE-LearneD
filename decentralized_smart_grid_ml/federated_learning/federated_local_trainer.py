@@ -107,7 +107,7 @@ class FederatedLocalTrainer:
         :return:
         """
         with open(output_file_path, "w") as file_read:
-            json.dump(self.rounds2history, file_read)
+            json.dump(self.rounds2history, file_read, indent="\t")
         logger.info(
             "Participant_%s's statistics saved in %s",
             self.participant_id, output_file_path

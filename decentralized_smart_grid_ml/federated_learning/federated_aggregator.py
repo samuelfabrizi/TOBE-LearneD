@@ -258,5 +258,5 @@ class Aggregator:
             del copy_statistics[idx_round]["participant_weights"]
             del copy_statistics[idx_round]["valid_participant_ids"]
         with open(output_file_path, "w") as file_read:
-            json.dump(copy_statistics, file_read)
+            json.dump(copy_statistics, file_read, indent="\t")
         logger.info("Aggregator's statistics saved in %s", output_file_path)
