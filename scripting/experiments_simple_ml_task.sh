@@ -4,6 +4,26 @@ export ANNOUNCEMENT_JSON_PATH="/home/fabsam/Documenti/university/masterDegree/th
 export DEX_JSON_PATH="/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/build/contracts/GreenDEX.json"
 export TOKEN_JSON_PATH="/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/build/contracts/GreenToken.json"
 
+cd ..
+sh clean_data.sh
+truffle migrate --reset
+cd scripting/
+
+python dataset_task_initialization.py \
+--dataset_path \
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/simple_ml_task.csv \
+--validation_size \
+0.2 \
+--test_size \
+0.15 \
+--n_participants \
+2 \
+--ml_task_directory_path \
+/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/ \
+--random_state \
+42 \
+--shuffle
+#--unbalanced
 
 # create the announcement
 python create_announcement.py \
