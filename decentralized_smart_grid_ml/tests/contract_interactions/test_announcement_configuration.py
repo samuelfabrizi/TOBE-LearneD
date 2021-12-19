@@ -13,6 +13,7 @@ json_config = {
     "features_names": "test features",
     "fl_rounds": 2,
     "epochs": 2,
+    "batch_size": 32,
     "aggregation_method": "test aggregation"
 }
 
@@ -39,10 +40,10 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual("test weights", announcement_config.baseline_model_weights)
         self.assertEqual("test config", announcement_config.baseline_model_config)
         self.assertEqual("test features", announcement_config.features_names)
-        self.assertEqual("test features", announcement_config.features_names)
         self.assertEqual("test aggregation", announcement_config.aggregation_method)
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)
+        self.assertEqual(32, announcement_config.batch_size)
 
     @patch("json.load")
     def test_retrieve_announcement_configuration_malformed(self, json_load_mock):
@@ -81,3 +82,4 @@ class TestAnnouncementConfiguration(unittest.TestCase):
         self.assertEqual("test aggregation", announcement_config.aggregation_method)
         self.assertEqual(2, announcement_config.fl_rounds)
         self.assertEqual(2, announcement_config.epochs)
+        self.assertEqual(32, announcement_config.batch_size)

@@ -19,6 +19,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         participant_id = 0
         announcement_config_mock.fl_rounds = 2
         announcement_config_mock.epochs = 5
+        announcement_config_mock.batch_size = 32
         announcement_config_mock.baseline_model_artifact = "/path/to/model"
         announcement_config_mock.features_names = {
             "features": ["x1", "x2"],
@@ -66,6 +67,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         current_round = 1
         announcement_config_mock.fl_rounds = 2
         announcement_config_mock.epochs = 5
+        announcement_config_mock.batch_size = 32
         path_file_created = "validator/validator_weights_round_1.json"
         baseline_model_weights = "baseline model weights"
         x_train = "train x"
@@ -94,7 +96,11 @@ class TestFederatedLocalTrainer(unittest.TestCase):
             1: None
         }
         is_completed = flt.fit_local_model(path_file_created)
-        local_model_mock.fit.assert_called_with(x_train, y_train, epochs=announcement_config_mock.epochs)
+        local_model_mock.fit.assert_called_with(
+            x_train, y_train,
+            epochs=announcement_config_mock.epochs,
+            batch_size=announcement_config_mock.batch_size
+        )
         local_model_mock.set_weights.assert_called_with(baseline_model_weights)
         save_fl_model_weights_mock.assert_called_with(local_model_mock, local_model_trained_path)
         self.assertDictEqual(rounds2history_expected, flt.rounds2history)
@@ -117,6 +123,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         current_round = 1
         announcement_config_mock.fl_rounds = 3
         announcement_config_mock.epochs = 5
+        announcement_config_mock.batch_size = 32
         path_file_created = "validator/validator_weights_round_1.json"
         baseline_model_weights = "baseline model weights"
         x_train = "train x"
@@ -147,7 +154,11 @@ class TestFederatedLocalTrainer(unittest.TestCase):
             2: None
         }
         is_completed = flt.fit_local_model(path_file_created)
-        local_model_mock.fit.assert_called_with(x_train, y_train, epochs=announcement_config_mock.epochs)
+        local_model_mock.fit.assert_called_with(
+            x_train, y_train,
+            epochs=announcement_config_mock.epochs,
+            batch_size=announcement_config_mock.batch_size
+        )
         local_model_mock.set_weights.assert_called_with(baseline_model_weights)
         save_fl_model_weights_mock.assert_called_with(local_model_mock, local_model_trained_path)
         self.assertEqual(False, is_completed)
@@ -168,6 +179,7 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         current_round = 0
         announcement_config_mock.fl_rounds = 2
         announcement_config_mock.epochs = 5
+        announcement_config_mock.batch_size = 32
         x_train = "train x"
         y_train = "train y"
         local_model_weights_path = "participants/participant_0/"
@@ -194,7 +206,11 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         }
         # we pass None because it is the first round
         is_completed = flt.fit_local_model(None)
-        local_model_mock.fit.assert_called_with(x_train, y_train, epochs=announcement_config_mock.epochs)
+        local_model_mock.fit.assert_called_with(
+            x_train, y_train,
+            epochs=announcement_config_mock.epochs,
+            batch_size=announcement_config_mock.batch_size
+        )
         save_fl_model_weights_mock.assert_called_with(local_model_mock, local_model_trained_path)
         self.assertEqual(False, is_completed)
         self.assertDictEqual(rounds2history_expected, flt.rounds2history)
