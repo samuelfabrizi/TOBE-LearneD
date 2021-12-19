@@ -21,24 +21,36 @@ from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNC
 logger = create_logger(__name__)
 
 
-def create_model(n_classes=None):
-    # create a simple linear model as baseline
-    model = LinearModel(activation="sigmoid")
-    model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
-    logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
-    '''
-    # create a model for the appliance classification
-    model = models.Sequential()
-    model.add(layers.Dense(128, activation="relu"))
-    model.add(layers.Dense(32, activation="relu"))
-    model.add(layers.Dense(len(y_test[0]), activation="softmax"))
-    model.compile(
-        optimizer="adam",
-        loss="categorical_crossentropy",
-        metrics=["accuracy"]
-    )
-    '''
-    return model
+def create_model(task_name):
+    if task_name == "simple_ml_task":
+        # create a simple linear model as baseline
+        model = LinearModel(activation="sigmoid")
+        model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
+        logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
+        return model
+    if task_name == "appliance_classification_task":
+        # create a model for the appliance classification
+        model = models.Sequential()
+        model.add(layers.Dense(128, activation="relu"))
+        model.add(layers.Dense(32, activation="relu"))
+        model.add(layers.Dense(len(y_test[0]), activation="softmax"))
+        model.compile(
+            optimizer="adam",
+            loss="categorical_crossentropy",
+            metrics=["accuracy"]
+        )
+        return model
+    if task_name == "simple_multiclass_task":
+        # define model
+        model = models.Sequential()
+        model.add(layers.Dense(25, activation='relu'))
+        model.add(layers.Dense(3, activation='softmax'))
+        model.compile(
+            loss='categorical_crossentropy',
+            optimizer='adam',
+            metrics=['accuracy']
+        )
+        return model
 
 
 if __name__ == '__main__':
@@ -105,8 +117,10 @@ if __name__ == '__main__':
     x_test = test_set[announcement_config.features_names["features"]].values
     y_test = test_set[announcement_config.features_names["labels"]].values
 
+    with open(args.task_config_path) as file_read:
+        task_name = json.load(file_read)["task_name"]
     model = create_model(
-    #    n_classes=len(y_test[0])
+        task_name
     )
     model.evaluate(x_test, y_test)
 
