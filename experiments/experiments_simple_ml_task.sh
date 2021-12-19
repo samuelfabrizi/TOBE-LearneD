@@ -1,3 +1,9 @@
+#!/bin/bash
+
+# constants
+N_PARTICIPANTS=2
+
+# environment variables
 export PYTHONPATH="../"
 export BC_ADDRESS="http://127.0.0.1:7545"
 export ANNOUNCEMENT_JSON_PATH="/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/build/contracts/Announcement.json"
@@ -17,7 +23,7 @@ python dataset_task_initialization.py \
 --test_size \
 0.15 \
 --n_participants \
-2 \
+$N_PARTICIPANTS \
 --ml_task_directory_path \
 /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/ \
 --random_state \
@@ -59,7 +65,7 @@ python validator_aggregation.py \
 sleep 5
 
 # run the participants
-for idx_participant in 0 1
+for (( idx_participant=0; idx_participant<$N_PARTICIPANTS; idx_participant++ ))
 do
   python participant_fl_training.py \
   --contract_info_path \
