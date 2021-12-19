@@ -1,6 +1,6 @@
 import pathlib
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, call, mock_open
 
 import numpy as np
 import pandas as pd
@@ -72,14 +72,22 @@ class TestFederatedAggregator(unittest.TestCase):
             "features": ["x1", "x2"],
             "labels": "y"
         }
-        announcement_config_mock.aggregation_method = "ensamble_general"
+        announcement_config_mock.aggregation_method = "ensemble_general"
+        validation_set_path = "/path/to/validation.csv"
         test_set_path = "/path/to/test.csv"
         model_weights_new_round_path = "/path/to/new_model_weights"
-        read_csv_mock.return_value = pd.DataFrame({
-            "x1": [0, 1],
-            "x2": [1, 2],
-            "y": [0, 1]
-        })
+        read_csv_mock.side_effect = [
+            pd.DataFrame({
+                "x1": [0, 1],
+                "x2": [1, 2],
+                "y": [0, 1]
+            }),
+            pd.DataFrame({
+                "x1": [0, 1],
+                "x2": [1, 2],
+                "y": [0, 1]
+            })
+        ]
         model_artifact = "expected model"
         load_fl_model_mock.return_value = model_artifact
         rounds2participants_expected = {
@@ -97,10 +105,14 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator = Aggregator(
             participant_ids,
             announcement_config_mock,
+            validation_set_path,
             test_set_path,
             model_weights_new_round_path
         )
-        read_csv_mock.assert_called_with(test_set_path)
+        read_csv_mock.has_calls(
+            call(test_set_path),
+            call(validation_set_path)
+        )
         load_fl_model_mock.assert_called_with(global_model_path)
         self.assertDictEqual(rounds2participants_expected, aggregator.rounds2participants)
 
@@ -332,3 +344,36 @@ class TestFederatedAggregator(unittest.TestCase):
         final_contributions_expected = [0.33, 0.43, 0.23]
         final_contributions = aggregator.get_participants_contributions()
         self.assertListEqual(final_contributions_expected, final_contributions)
+
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("json.dump")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_write_statistics(self, aggregator_init_mock, json_dump_mock, announcement_config_mock):
+        file_output_path = "test/output.json"
+        m_o = mock_open()
+        aggregator = Aggregator()
+        announcement_config_mock.fl_rounds = 1
+        aggregator.announcement_config = announcement_config_mock
+        aggregator.rounds2participants = {
+            0: {
+                "participant_ids": "test participants ids",
+                "alpha": "test alpha",
+                "evaluation": "test evaluations",
+                "participant_weights": "test weights",
+                "valid_participant_ids": "test valid participant ids"
+            }
+        }
+        statistics_expected = {
+            0: {
+                "participant_ids": "test participants ids",
+                "alpha": "test alpha",
+                "evaluation": "test evaluations",
+            }
+        }
+        with patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.open', m_o):
+            aggregator.write_statistics(file_output_path)
+            m_o.assert_called_with(file_output_path, "w")
+            handle = m_o()
+            json_dump_mock.assert_called_with(statistics_expected, handle, indent="\t")

@@ -3,6 +3,7 @@ This script runs the Federate Learning life cycle of the validator
 """
 import argparse
 import json
+import os
 import sys
 import time
 
@@ -27,6 +28,14 @@ if __name__ == '__main__':
         metavar='contract_info_path',
         type=str,
         help="File path to the json file that contains announcement's contract information",
+        required=True
+    )
+    parser.add_argument(
+        '--validation_set_path',
+        dest='validation_set_path',
+        metavar='validation_set_path',
+        type=str,
+        help='The file path to the validation set',
         required=True
     )
     parser.add_argument(
@@ -90,10 +99,10 @@ if __name__ == '__main__':
         else:
             isStarted = True
 
-    # TODO: add aggregation method automatically from the json config of the task
     aggregator = Aggregator(
         list(range(number_participants)),
         announcement_configuration,
+        args.validation_set_path,
         args.test_set_path,
         args.model_weights_new_round_path
     )
@@ -125,5 +134,11 @@ if __name__ == '__main__':
     contract.functions.endTask(percentage_participants_contributions).transact(
         {'from': validator_address}
     )
+
+    statistics_output_path = os.path.join(
+        args.model_weights_new_round_path,
+        "statistics.json"
+    )
+    aggregator.write_statistics(statistics_output_path)
     logger.info("The validator terminated his work with success")
     sys.exit(0)

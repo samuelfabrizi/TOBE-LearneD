@@ -9,6 +9,7 @@ import time
 import pandas as pd
 from web3 import Web3, HTTPProvider
 from tensorflow.keras.experimental import LinearModel
+from tensorflow.keras import layers, models
 
 from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import AnnouncementConfiguration
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import save_fl_model, \
@@ -18,6 +19,26 @@ from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNC
     get_addresses_contracts, DEX_JSON_PATH, TOKEN_JSON_PATH
 
 logger = create_logger(__name__)
+
+
+def create_model(n_classes=None):
+    # create a simple linear model as baseline
+    model = LinearModel(activation="sigmoid")
+    model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
+    logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
+    '''
+    # create a model for the appliance classification
+    model = models.Sequential()
+    model.add(layers.Dense(128, activation="relu"))
+    model.add(layers.Dense(32, activation="relu"))
+    model.add(layers.Dense(len(y_test[0]), activation="softmax"))
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+    '''
+    return model
 
 
 if __name__ == '__main__':
@@ -81,12 +102,13 @@ if __name__ == '__main__':
     test_set = pd.read_csv(args.test_set_path)
     logger.info("Dataset loaded from %s", args.test_set_path)
 
-    x_test = test_set[announcement_config.features_names["features"]].values,
+    x_test = test_set[announcement_config.features_names["features"]].values
     y_test = test_set[announcement_config.features_names["labels"]].values
-    # create a simple linear model as baseline
-    model = LinearModel(activation="sigmoid")
-    model.compile(optimizer="sgd", loss="mse", metrics="accuracy")
-    logger.info("Evaluation of baseline model %s", model.evaluate(x_test, y_test))
+
+    model = create_model(
+    #    n_classes=len(y_test[0])
+    )
+    model.evaluate(x_test, y_test)
 
     # save the model's artifact
     save_fl_model(model, announcement_config.baseline_model_artifact)

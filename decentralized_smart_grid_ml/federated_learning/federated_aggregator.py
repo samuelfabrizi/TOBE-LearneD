@@ -2,6 +2,7 @@
 This module contains both functions and classes used to aggregate the local models' weights
 in the global one
 """
+import json
 import os
 from pathlib import Path
 
@@ -70,12 +71,13 @@ def weighted_average_aggregation(models_weights, alpha):
 class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
-    def __init__(self, participant_ids, announcement_config, test_set_path,
-                 model_weights_new_round_path):
+    def __init__(self, participant_ids, announcement_config, validation_set_path,
+                 test_set_path, model_weights_new_round_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
         :param announcement_config: instance of AnnouncementConfiguration class
+        :param validation_set_path: file path to the validation set
         :param test_set_path: file path to the test set
         :param model_weights_new_round_path: path to the directory that will contain the
             new model's weights (one for each round)
@@ -84,6 +86,9 @@ class Aggregator:
         self.announcement_config = announcement_config
         self.global_model = load_fl_model(announcement_config.baseline_model_artifact)
         test_set_df = pd.read_csv(test_set_path)
+        validation_set_df = pd.read_csv(validation_set_path)
+        self.x_val = validation_set_df[self.announcement_config.features_names["features"]].values
+        self.y_val = validation_set_df[self.announcement_config.features_names["labels"]].values
         self.x_test = test_set_df[self.announcement_config.features_names["features"]].values
         self.y_test = test_set_df[self.announcement_config.features_names["labels"]].values
         self.rounds2participants = {}
@@ -93,8 +98,8 @@ class Aggregator:
         self.contribution_extractor = ContributionsExtractorCreator.factory_method(
             announcement_config.aggregation_method,
             self.global_model,
-            self.x_test,
-            self.y_test
+            self.x_val,
+            self.y_val
         )
         self.is_finished = False
 
@@ -195,7 +200,7 @@ class Aggregator:
         logger.debug("The global model has been updated with the new weights")
         evaluation_round = self.global_model.evaluate(self.x_test, self.y_test)
         logger.info(
-            "Evaluation of the global model at round %d: %s",
+            "Test set evaluation of the global model at round %d: %s",
             self.current_round,
             evaluation_round
         )
@@ -241,3 +246,17 @@ class Aggregator:
                 total_contribution / self.announcement_config.fl_rounds, 2)
             )
         return weighted_contributions
+
+    def write_statistics(self, output_file_path):
+        """
+        Writes in output the statistics computed during the framework execution
+        :param output_file_path: output file path
+        :return:
+        """
+        copy_statistics = self.rounds2participants.copy()
+        for idx_round in range(self.announcement_config.fl_rounds):
+            del copy_statistics[idx_round]["participant_weights"]
+            del copy_statistics[idx_round]["valid_participant_ids"]
+        with open(output_file_path, "w") as file_read:
+            json.dump(copy_statistics, file_read, indent="\t")
+        logger.info("Aggregator's statistics saved in %s", output_file_path)

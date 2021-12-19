@@ -1,6 +1,7 @@
 """
 This module contains the class responsible for the training of the local participant's model
 """
+import json
 import os
 from pathlib import Path
 
@@ -92,9 +93,22 @@ class FederatedLocalTrainer:
             )
             output_folder = Path(self.local_model_weights_path)
             output_folder.mkdir(parents=True, exist_ok=True)
-            self.rounds2history[self.current_round] = history
+            self.rounds2history[self.current_round] = history.history
             logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
         self.is_finished = self.current_round == self.announcement_config.fl_rounds
         return self.is_finished
+
+    def write_statistics(self, output_file_path):
+        """
+        Writes in output the statistics computed during the framework execution
+        :param output_file_path: output file path
+        :return:
+        """
+        with open(output_file_path, "w") as file_read:
+            json.dump(self.rounds2history, file_read, indent="\t")
+        logger.info(
+            "Participant_%s's statistics saved in %s",
+            self.participant_id, output_file_path
+        )

@@ -1,0 +1,13 @@
+--dataset_path
+data_sample/appliance_classification_task/appliance_classification_task.csv
+--validation_size
+0.2
+--test_size
+0.15
+--n_participants
+3
+--ml_task_directory_path
+data_sample/appliance_classification_task/
+--random_state
+42
+--shuffle

@@ -1,6 +1,6 @@
 import pathlib
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open, MagicMock
 
 import pandas as pd
 
@@ -74,11 +74,13 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         load_fl_model_weights_mock.return_value = baseline_model_weights
         expected_history = "history 1"
+        expected_history_mock = MagicMock()
+        expected_history_mock.history = expected_history
         rounds2history_expected = {
             0: None,
             1: expected_history
         }
-        local_model_mock.fit.return_value = expected_history
+        local_model_mock.fit.return_value = expected_history_mock
         flt = FederatedLocalTrainer()
         flt.x_train = x_train
         flt.y_train = y_train
@@ -123,12 +125,14 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         load_fl_model_weights_mock.return_value = baseline_model_weights
         expected_history = "history 1"
+        expected_history_mock = MagicMock()
+        expected_history_mock.history = expected_history
         rounds2history_expected = {
             0: None,
             1: expected_history,
             2: None,
         }
-        local_model_mock.fit.return_value = expected_history
+        local_model_mock.fit.return_value = expected_history_mock
         flt = FederatedLocalTrainer()
         flt.x_train = x_train
         flt.y_train = y_train
@@ -169,11 +173,13 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         local_model_weights_path = "participants/participant_0/"
         local_model_trained_path = local_model_weights_path + "weights_round_" + str(current_round) + ".json"
         expected_history = "history 1"
+        expected_history_mock = MagicMock()
+        expected_history_mock.history = expected_history
         rounds2history_expected = {
             0: expected_history,
             1: None
         }
-        local_model_mock.fit.return_value = expected_history
+        local_model_mock.fit.return_value = expected_history_mock
         flt = FederatedLocalTrainer()
         flt.x_train = x_train
         flt.y_train = y_train
@@ -228,3 +234,30 @@ class TestFederatedLocalTrainer(unittest.TestCase):
         flt.participant_id = 0
         is_completed = flt.fit_local_model(path_file_created)
         self.assertEqual(False, is_completed)
+
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch("json.dump")
+    @patch(
+        "decentralized_smart_grid_ml.federated_learning.federated_local_trainer.FederatedLocalTrainer.__init__",
+        return_value=None
+    )
+    def test_write_statistics(self, federated_local_trainer_mock, json_dump_mock, announcement_config_mock):
+        m_o = mock_open()
+        file_output_path = "test/output.json"
+        announcement_config_mock.fl_rounds = 1
+        flt = FederatedLocalTrainer()
+        flt.announcement_config = announcement_config_mock
+        flt.participant_id = 0
+        flt.rounds2history = {
+            0: "history test"
+        }
+        statistics_expected = {
+            0: "history test"
+        }
+        with patch('decentralized_smart_grid_ml.federated_learning.federated_local_trainer.open', m_o):
+            flt.write_statistics(file_output_path)
+            m_o.assert_called_with(file_output_path, "w")
+            handle = m_o()
+            json_dump_mock.assert_called_with(statistics_expected, handle, indent="\t")

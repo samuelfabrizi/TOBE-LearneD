@@ -3,7 +3,7 @@ This module contains classes and functions used to compute the participants' con
 """
 from abc import abstractmethod
 
-from scipy.special import softmax
+#from scipy.special import softmax
 
 from decentralized_smart_grid_ml.exceptions import NotValidAggregationMethod
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -18,18 +18,18 @@ class ContributionsExtractorCreator:
     """
 
     @staticmethod
-    def factory_method(method, model, x_test, y_test):
+    def factory_method(method, model, x_validation, y_validation):
         """
         Creates a ContributionsExtractor instance
         :param method: method used for the contribution extraction
         :param model: global model structure
-        :param x_test: test features
-        :param y_test: test labels
-        :return: ContributionsExtracto instance
+        :param x_validation: validation features
+        :param y_validation: validation labels
+        :return: ContributionsExtractor instance
         """
-        if method is None or method == "ensamble_general":
+        if method == "ensemble_general":
             # default method
-            return ContributionsExtractorEnsambleGeneral(model, x_test, y_test)
+            return ContributionsExtractorEnsembleGeneral(model, x_validation, y_validation)
         logger.error("The method '%s' is not valid", method)
         raise NotValidAggregationMethod("The given method is not valid")
 
@@ -39,19 +39,19 @@ class ContributionsExtractor:
     Superclass that represents a ContributionsExtractor
     """
 
-    def __init__(self, model, x_test, y_test):
+    def __init__(self, model, x_validation, y_validation):
         """
         Initializes the ContributionsExtractor
         :param model: global model structure
-        :param x_test: test features
-        :param y_test: test labels
+        :param x_validation: validation features
+        :param y_validation: validation labels
         """
-        if model is None or x_test is None or y_test is None:
-            logger.error("The arguments %s are not correct", [model, x_test, y_test])
+        if model is None or x_validation is None or y_validation is None:
+            logger.error("The arguments %s are not correct", [model, x_validation, y_validation])
             raise ValueError("The input arguments are not valid")
         self.model = model
-        self.x_test = x_test
-        self.y_test = y_test
+        self.x_validation = x_validation
+        self.y_validation = y_validation
 
     @abstractmethod
     def compute_contribution(self, models_weights):
@@ -63,16 +63,23 @@ class ContributionsExtractor:
         pass
 
 
-class ContributionsExtractorEnsambleGeneral(ContributionsExtractor):
+class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
     """
     This class contains the logic to extract the participants' contribution using
-    an ensamble model based on the local models' output
+    an ensemble model based on the local models' output
     """
     def compute_contribution(self, models_weights):
         evaluation_participants = []
         for model_weight in models_weights:
             self.model.set_weights(model_weight)
-            evaluation_participants.append(self.model.evaluate(self.x_test, self.y_test)[1])
-        alpha = softmax(evaluation_participants)
+            evaluation_participants.append(self.model.evaluate(self.x_validation, self.y_validation)[1])
+        sum_eval = sum(evaluation_participants)
+        alpha = []
+        for eval_participant in evaluation_participants:
+            if eval_participant == 0.0:
+                alpha.append(0)
+            else:
+                alpha.append(eval_participant / sum_eval)
+        #alpha = softmax(evaluation_participants)
         logger.debug("The contribution vector computed is %s", alpha)
         return alpha
