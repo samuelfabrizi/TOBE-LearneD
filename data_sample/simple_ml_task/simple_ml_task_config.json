@@ -10,5 +10,6 @@
 	},
 	"fl_rounds": 2,
 	"epochs": 1,
+	"batch_size": 32,
 	"aggregation_method": "simple_average"
 }
