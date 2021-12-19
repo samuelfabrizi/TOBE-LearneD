@@ -42,7 +42,7 @@ python create_announcement.py \
 --n_tokens_at_stake \
 100000 \
 --max_number_participants \
-2 \
+$N_PARTICIPANTS \
 --percentage_reward_validator \
 20 &
 
