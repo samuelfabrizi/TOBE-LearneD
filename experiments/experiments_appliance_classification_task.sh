@@ -40,7 +40,7 @@ python create_announcement.py \
 --test_set_path \
 /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/validator/appliance_classification_task_test.csv \
 --n_tokens_at_stake \
-100000 \
+10000000 \
 --max_number_participants \
 $N_PARTICIPANTS \
 --percentage_reward_validator \
