@@ -9,7 +9,7 @@
 		"labels": ["is Dish Washer", "is Freezer", "is Refrigerator", "is Washing Machine"]
 	},
 	"fl_rounds": 10,
-	"epochs": 2,
-	"batch_size": 32,
+	"epochs": 8,
+	"batch_size": 64,
 	"aggregation_method": "ensemble_general"
 }
