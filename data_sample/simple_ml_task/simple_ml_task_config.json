@@ -10,5 +10,5 @@
 	},
 	"fl_rounds": 2,
 	"epochs": 1,
-	"aggregation_method": "ensemble_general"
+	"aggregation_method": "simple_average"
 }

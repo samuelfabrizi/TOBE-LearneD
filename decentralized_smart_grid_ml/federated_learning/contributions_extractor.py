@@ -3,8 +3,6 @@ This module contains classes and functions used to compute the participants' con
 """
 from abc import abstractmethod
 
-#from scipy.special import softmax
-
 from decentralized_smart_grid_ml.exceptions import NotValidAggregationMethod
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
 
@@ -30,6 +28,8 @@ class ContributionsExtractorCreator:
         if method == "ensemble_general":
             # default method
             return ContributionsExtractorEnsembleGeneral(model, x_validation, y_validation)
+        elif method == "simple_average":
+            return ContributionsExtractorSimpleAverage(model, x_validation, y_validation)
         logger.error("The method '%s' is not valid", method)
         raise NotValidAggregationMethod("The given method is not valid")
 
@@ -46,7 +46,7 @@ class ContributionsExtractor:
         :param x_validation: validation features
         :param y_validation: validation labels
         """
-        if model is None or x_validation is None or y_validation is None:
+        if x_validation is None or y_validation is None:
             logger.error("The arguments %s are not correct", [model, x_validation, y_validation])
             raise ValueError("The input arguments are not valid")
         self.model = model
@@ -68,6 +68,7 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
     This class contains the logic to extract the participants' contribution using
     an ensemble model based on the local models' output
     """
+
     def compute_contribution(self, models_weights):
         evaluation_participants = []
         for model_weight in models_weights:
@@ -80,6 +81,19 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
                 alpha.append(0)
             else:
                 alpha.append(eval_participant / sum_eval)
-        #alpha = softmax(evaluation_participants)
+        # alpha = softmax(evaluation_participants)
+        logger.debug("The contribution vector computed is %s", alpha)
+        return alpha
+
+
+class ContributionsExtractorSimpleAverage(ContributionsExtractor):
+    """
+    This class contains the logic to extract the participants' contribution using
+    a simple average of participants models' weights
+    """
+    def compute_contribution(self, models_weights):
+        n_participants = len(models_weights)
+        eval_participant = round(1.0 / n_participants, 2)
+        alpha = [eval_participant for _ in range(n_participants)]
         logger.debug("The contribution vector computed is %s", alpha)
         return alpha
