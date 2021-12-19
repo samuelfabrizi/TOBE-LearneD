@@ -16,7 +16,7 @@ class AnnouncementConfiguration:
 
     def __init__(self, task_name, task_description, baseline_model_artifact,
                  baseline_model_weights, baseline_model_config, features_names,
-                 fl_rounds, epochs, aggregation_method):
+                 fl_rounds, epochs, batch_size, aggregation_method):
         """
         Constructor
         :param task_name: name of the task
@@ -27,6 +27,7 @@ class AnnouncementConfiguration:
         :param features_names: features name of the dataset (features and labels)
         :param fl_rounds: number of federated rounds
         :param epochs: number of epochs
+        :param batch_size: batch size
         :param aggregation_method: method used to aggregate the participants' models
         """
         self.task_name = task_name
@@ -37,6 +38,7 @@ class AnnouncementConfiguration:
         self.features_names = features_names
         self.fl_rounds = fl_rounds
         self.epochs = epochs
+        self.batch_size = batch_size
         self.aggregation_method = aggregation_method
 
     @classmethod
@@ -74,6 +76,7 @@ class AnnouncementConfiguration:
                 json_config_task["features_names"],
                 json_config_task["fl_rounds"],
                 json_config_task["epochs"],
+                json_config_task["batch_size"],
                 json_config_task["aggregation_method"]
             )
         except KeyError as key_error:

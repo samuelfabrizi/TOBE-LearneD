@@ -10,5 +10,6 @@
 	},
 	"fl_rounds": 10,
 	"epochs": 4,
+	"batch_size": 32,
 	"aggregation_method": "ensemble_general"
 }

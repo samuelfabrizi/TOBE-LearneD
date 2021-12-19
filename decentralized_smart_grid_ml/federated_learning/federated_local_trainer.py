@@ -68,7 +68,8 @@ class FederatedLocalTrainer:
                     # fit the local model
                     history = self.local_model.fit(
                         self.x_train, self.y_train,
-                        epochs=self.announcement_config.epochs
+                        epochs=self.announcement_config.epochs,
+                        batch_size=self.announcement_config.batch_size
                     )
                 else:
                     logger.warning(
@@ -84,7 +85,8 @@ class FederatedLocalTrainer:
             # first round: the baseline model is in global_model_path
             history = self.local_model.fit(
                 self.x_train, self.y_train,
-                epochs=self.announcement_config.epochs
+                epochs=self.announcement_config.epochs,
+                batch_size=self.announcement_config.batch_size
             )
         if history is not None:
             local_model_weights_path = os.path.join(
