@@ -14,6 +14,21 @@ rm -rf data_sample/simple_ml_task/linear_model
 rm -rf data_sample/simple_ml_task/linear_model_config.json
 
 
+#### delete simple multi-classification task results ####
+
+# delete the weights
+find ./data_sample/simple_multiclass_task -type f -name '*weights*' -delete
+# delete the datasets
+find ./data_sample/simple_multiclass_task/validator -type f -name '*.csv' -delete
+find ./data_sample/simple_multiclass_task/participants -type f -name '*.csv' -delete
+# delete the participants statistics
+find ./data_sample/simple_multiclass_task/participants -type f -name '*statistics*' -delete
+# delete the validator statistics
+find ./data_sample/simple_multiclass_task/validator -type f -name '*statistics*' -delete
+# delete the models
+rm -rf data_sample/simple_multiclass_task/model
+rm -rf data_sample/simple_multiclass_task/model_config.json
+
 #### delete appliance classification task results ####
 
 # delete the weights

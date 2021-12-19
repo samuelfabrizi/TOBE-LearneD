@@ -1,0 +1,14 @@
+{
+	"task_name": "simple_multiclass_task",
+	"task_description": "The task proposed is a supervised multi-classification task with random generated data",
+	"baseline_model_artifact": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/model",
+	"baseline_model_weights": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/model_config.json",
+	"baseline_model_config": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/model_weights.json",
+	"features_names": {
+		"features": ["x1", "x2"],
+		"labels": ["is_0", "is_1", "is_2"]
+	},
+	"fl_rounds": 10,
+	"epochs": 4,
+	"aggregation_method": "ensemble_general"
+}
