@@ -198,13 +198,20 @@ class Aggregator:
         )
         self.global_model.set_weights(global_weights)
         logger.debug("The global model has been updated with the new weights")
-        evaluation_round = self.global_model.evaluate(self.x_test, self.y_test)
+        validation_results = self.global_model.evaluate(self.x_val, self.y_val)
         logger.info(
-            "Test set evaluation of the global model at round %d: %s",
+            "Evaluation of the global model on the validation set at round %d: %s",
             self.current_round,
-            evaluation_round
+            validation_results
         )
-        self.rounds2participants[self.current_round]["evaluation"] = evaluation_round
+        self.rounds2participants[self.current_round]["validation_results"] = validation_results
+        test_results = self.global_model.evaluate(self.x_test, self.y_test)
+        logger.info(
+            "Evaluation of the global model on the test set at round %d: %s",
+            self.current_round,
+            validation_results
+        )
+        self.rounds2participants[self.current_round]["test_results"] = test_results
         # next round can start
         self.current_round += 1
         if self.current_round == self.announcement_config.fl_rounds:

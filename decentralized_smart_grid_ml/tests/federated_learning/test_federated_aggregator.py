@@ -197,10 +197,16 @@ class TestFederatedAggregator(unittest.TestCase):
                                  contributions_extractor_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         announcement_config_mock.fl_rounds = 2
-        evaluation = ["0.8", "0.7"]
+        validation_results = [0.8, 0.7]
+        test_results = [0.8, 0.7]
+        x_val = [[2, 1], [3, 4]]
+        y_val = [1, 1]
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
-        global_model_mock.evaluate.return_value = evaluation
+        global_model_mock.evaluate.side_effect = (
+            validation_results,
+            test_results
+        )
         global_weights = [2, 3]
         weighted_average_aggregation_mock.return_value = global_weights
         contributions_extractor_mock.compute_contribution.return_value = [0.5, 0.5]
@@ -209,6 +215,8 @@ class TestFederatedAggregator(unittest.TestCase):
         aggregator.announcement_config = announcement_config_mock
         aggregator.x_test = x_test
         aggregator.y_test = y_test
+        aggregator.x_val = x_val
+        aggregator.y_val = y_val
         aggregator.is_finished = False
         aggregator.contribution_extractor = contributions_extractor_mock
         aggregator.model_weights_new_round_path = model_weights_new_round_path
@@ -226,7 +234,8 @@ class TestFederatedAggregator(unittest.TestCase):
                 "participant_weights": [[1, 2], [3, 4]],
                 "participant_ids": [0, 1],
                 "alpha": [0.5, 0.5],
-                "evaluation": evaluation
+                "validation_results": validation_results,
+                "test_results": validation_results
             }
         }
         aggregator.update_global_model()
@@ -235,9 +244,9 @@ class TestFederatedAggregator(unittest.TestCase):
             [0.5, 0.5]          # computed contributions
         )
         global_model_mock.set_weights.assert_called_with(global_weights)
-        global_model_mock.evaluate.assert_called_with(
-            x_test,
-            y_test
+        global_model_mock.evaluate.has_calls(
+            call(x_val, y_val),
+            call(x_test, y_test),
         )
         save_fl_model_weights_mock.assert_called_with(
             global_model_mock,
@@ -266,17 +275,25 @@ class TestFederatedAggregator(unittest.TestCase):
                                        mkdir_mock, announcement_config_mock,
                                        contributions_extractor_mock):
         model_weights_new_round_path = "/path/to/new_model_weights/"
-        evaluation = ["0.8", "0.7"]
+        validation_results = ["0.8", "0.7"]
+        test_results = ["0.8", "0.7"]
         announcement_config_mock.fl_rounds = 1
+        x_val = [[1, 2], [2, 3]]
+        y_val = [0, 1]
         x_test = [[1, 2], [2, 3]]
         y_test = [0, 1]
         contributions_extractor_mock.compute_contribution.return_value = [0.5, 0.5]
-        global_model_mock.evaluate.return_value = evaluation
+        global_model_mock.evaluate.side_effect = [
+            validation_results,
+            test_results
+        ]
         global_weights = [2, 3]
         weighted_average_aggregation_mock.return_value = global_weights
         aggregator = Aggregator()
         aggregator.current_round = 0
         aggregator.announcement_config = announcement_config_mock
+        aggregator.x_val = x_val
+        aggregator.y_val = y_val
         aggregator.x_test = x_test
         aggregator.y_test = y_test
         aggregator.is_finished = False
@@ -296,14 +313,15 @@ class TestFederatedAggregator(unittest.TestCase):
                 "participant_weights": [[1, 2], [3, 4]],
                 "participant_ids": [0, 1],
                 "alpha": [0.5, 0.5],
-                "evaluation": evaluation
+                "validation_results": validation_results,
+                "test_results": test_results
             }
         }
         aggregator.update_global_model()
         global_model_mock.set_weights.assert_called_with(global_weights)
-        global_model_mock.evaluate.assert_called_with(
-            x_test,
-            y_test
+        global_model_mock.evaluate.has_calls(
+            call(x_val, y_val),
+            call(x_test, y_test),
         )
         save_fl_model_weights_mock.assert_called_with(
             global_model_mock,
@@ -360,7 +378,8 @@ class TestFederatedAggregator(unittest.TestCase):
             0: {
                 "participant_ids": "test participants ids",
                 "alpha": "test alpha",
-                "evaluation": "test evaluations",
+                "validation_results": "test validation",
+                "test_results": "test tests",
                 "participant_weights": "test weights",
                 "valid_participant_ids": "test valid participant ids"
             }
@@ -369,7 +388,8 @@ class TestFederatedAggregator(unittest.TestCase):
             0: {
                 "participant_ids": "test participants ids",
                 "alpha": "test alpha",
-                "evaluation": "test evaluations",
+                "validation_results": "test validation",
+                "test_results": "test tests",
             }
         }
         with patch('decentralized_smart_grid_ml.federated_learning.federated_aggregator.open', m_o):
