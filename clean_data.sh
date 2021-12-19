@@ -8,7 +8,7 @@ rm -rf ./data_sample/simple_ml_task/validator
 # delete models info
 rm -rf data_sample/simple_ml_task/model
 rm -rf data_sample/simple_ml_task/model_config.json
-rm -rf data_sample/simple_ml_task/model_weights
+rm -rf data_sample/simple_ml_task/model_weights.json
 
 #### delete simple multi-classification task results ####
 
@@ -19,7 +19,7 @@ rm -rf ./data_sample/simple_multiclass_task/validator
 # delete models info
 rm -rf data_sample/simple_multiclass_task/model
 rm -rf data_sample/simple_multiclass_task/model_config.json
-rm -rf data_sample/simple_multiclass_task/model_weights
+rm -rf data_sample/simple_multiclass_task/model_weights.json
 
 
 #### delete appliance classification task results ####
@@ -31,7 +31,7 @@ rm -rf ./data_sample/appliance_classification_task/validator
 # delete models info
 rm -rf data_sample/appliance_classification_task/model
 rm -rf data_sample/appliance_classification_task/model_config.json
-rm -rf data_sample/appliance_classification_task/model_weights
+rm -rf data_sample/appliance_classification_task/model_weights.json
 
 
 # delete the announcement info
