@@ -74,6 +74,7 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
         for model_weight in models_weights:
             self.model.set_weights(model_weight)
             evaluation_participants.append(self.model.evaluate(self.x_validation, self.y_validation)[1])
+        logger.debug("Participants models' evaluation: %s", evaluation_participants)
         sum_eval = sum(evaluation_participants)
         alpha = []
         for eval_participant in evaluation_participants:
