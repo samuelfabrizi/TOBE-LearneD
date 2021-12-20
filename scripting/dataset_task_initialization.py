@@ -100,7 +100,7 @@ if __name__ == '__main__':
             directory_participant,
             dataset_name + "_" + str(idx_participant) + ".csv"
         )
-        dataset_participant.to_csv(str(dataset_participant_path))
+        dataset_participant.to_csv(str(dataset_participant_path), index=False)
         logger.info("Dataset participant %d saved in %s", idx_participant, dataset_participant_path)
     directory_validator = os.path.join(
         args.ml_task_directory_path,
@@ -112,12 +112,12 @@ if __name__ == '__main__':
         dataset_name + "_test.csv"
     )
     # store the validator's test datasets
-    dataset_test.to_csv(str(dataset_test_path))
+    dataset_test.to_csv(str(dataset_test_path), index=False)
     logger.info("Test set validator saved in %s", dataset_test_path)
     dataset_validation_path = os.path.join(
         directory_validator,
         dataset_name + "_validation.csv"
     )
     # store the validator's test datasets
-    dataset_validation.to_csv(str(dataset_validation_path))
+    dataset_validation.to_csv(str(dataset_validation_path), index=False)
     logger.info("Validation set validator saved in %s", dataset_validation_path)
