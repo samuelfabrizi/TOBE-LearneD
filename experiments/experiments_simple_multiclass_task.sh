@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # constants
-N_PARTICIPANTS=4
+N_PARTICIPANTS=5
 
 # environment variables
 export PYTHONPATH="../"
@@ -40,11 +40,11 @@ python create_announcement.py \
 --test_set_path \
 /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/validator/simple_multiclass_task_test.csv \
 --n_tokens_at_stake \
-100000 \
+10000000 \
 --max_number_participants \
 $N_PARTICIPANTS \
 --percentage_reward_validator \
-20 &
+15 &
 
 sleep 8
 
