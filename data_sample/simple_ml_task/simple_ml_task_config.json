@@ -8,8 +8,8 @@
 		"features": ["x1", "x2"],
 		"labels": "y"
 	},
-	"fl_rounds": 2,
-	"epochs": 1,
+	"fl_rounds": 4,
+	"epochs": 5,
 	"batch_size": 32,
-	"aggregation_method": "simple_average"
+	"aggregation_method": "ensemble_general"
 }

@@ -54,10 +54,11 @@ class ContributionsExtractor:
         self.y_validation = y_validation
 
     @abstractmethod
-    def compute_contribution(self, models_weights):
+    def compute_contribution(self, models_weights, last_metric_result):
         """
         Computes the participants' contribution
         :param models_weights: participants models' weights (one for each participant in this round)
+        :param last_metric_result: score value of the last global model's measurement
         :return: vector of the contribution
         """
         pass
@@ -69,11 +70,17 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
     an ensemble model based on the local models' output
     """
 
-    def compute_contribution(self, models_weights):
+    def compute_contribution(self, models_weights, last_metric_result):
+        logger.debug("Last metric result: %s", last_metric_result)
         evaluation_participants = []
         for model_weight in models_weights:
             self.model.set_weights(model_weight)
-            evaluation_participants.append(self.model.evaluate(self.x_validation, self.y_validation)[1])
+            evaluation_participant = self.model.evaluate(self.x_validation, self.y_validation)[1]
+            if evaluation_participant - last_metric_result > 0.0:
+                evaluation_improvement = evaluation_participant - last_metric_result
+            else:
+                evaluation_improvement = 0.0
+            evaluation_participants.append(evaluation_improvement)
         logger.debug("Participants models' evaluation: %s", evaluation_participants)
         sum_eval = sum(evaluation_participants)
         alpha = []
@@ -92,7 +99,7 @@ class ContributionsExtractorSimpleAverage(ContributionsExtractor):
     This class contains the logic to extract the participants' contribution using
     a simple average of participants models' weights
     """
-    def compute_contribution(self, models_weights):
+    def compute_contribution(self, models_weights, last_metric_result):
         n_participants = len(models_weights)
         eval_participant = round(1.0 / n_participants, 2)
         alpha = [eval_participant for _ in range(n_participants)]
