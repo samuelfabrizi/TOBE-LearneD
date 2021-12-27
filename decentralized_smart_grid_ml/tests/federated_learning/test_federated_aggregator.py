@@ -277,7 +277,7 @@ class TestFederatedAggregator(unittest.TestCase):
         model_weights_new_round_path = "/path/to/new_model_weights/"
         validation_results = ["0.8", "0.7"]
         test_results = ["0.8", "0.7"]
-        announcement_config_mock.fl_rounds = 1
+        announcement_config_mock.fl_rounds = 2
         x_val = [[1, 2], [2, 3]]
         y_val = [0, 1]
         x_test = [[1, 2], [2, 3]]
@@ -290,7 +290,7 @@ class TestFederatedAggregator(unittest.TestCase):
         global_weights = [2, 3]
         weighted_average_aggregation_mock.return_value = global_weights
         aggregator = Aggregator()
-        aggregator.current_round = 0
+        aggregator.current_round = 1
         aggregator.announcement_config = announcement_config_mock
         aggregator.x_val = x_val
         aggregator.y_val = y_val
@@ -303,12 +303,28 @@ class TestFederatedAggregator(unittest.TestCase):
             0: {
                 "valid_participant_ids": [0, 1],
                 "participant_weights": [[1, 2], [3, 4]],
-                "participant_ids": [0, 1]
+                "participant_ids": [0, 1],
+                "alpha": [0.5, 0.5],
+                "validation_results": validation_results,
+                "test_results": test_results
+            },
+            1: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
             }
         }
         aggregator.global_model = global_model_mock
         rounds2participants_expected = {
             0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+                "alpha": [0.5, 0.5],
+                "validation_results": validation_results,
+                "test_results": test_results
+            },
+            1: {
                 "valid_participant_ids": [0, 1],
                 "participant_weights": [[1, 2], [3, 4]],
                 "participant_ids": [0, 1],
@@ -331,7 +347,7 @@ class TestFederatedAggregator(unittest.TestCase):
             rounds2participants_expected,
             aggregator.rounds2participants
         )
-        self.assertEqual(1, aggregator.current_round)
+        self.assertEqual(2, aggregator.current_round)
         self.assertEqual(True, aggregator.is_finished)
 
     @patch(

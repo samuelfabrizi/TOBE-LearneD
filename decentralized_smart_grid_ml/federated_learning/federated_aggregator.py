@@ -181,9 +181,16 @@ class Aggregator:
         Updates the global model and save both contribution and the evalution of the new model
         :return:
         """
-        alpha = self.contribution_extractor.compute_contribution(
-            self.rounds2participants[self.current_round]["participant_weights"],
-        )
+        if self.current_round == 0:
+            alpha = self.contribution_extractor.compute_contribution(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                0
+            )
+        else:
+            alpha = self.contribution_extractor.compute_contribution(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                self.rounds2participants[self.current_round-1]["validation_results"][1],
+            )
         logger.info(
             "Alpha vector for round %d is %s relative to participant ids %s",
             self.current_round, alpha,
