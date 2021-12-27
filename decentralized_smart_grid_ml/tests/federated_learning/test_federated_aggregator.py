@@ -205,6 +205,7 @@ class TestFederatedAggregator(unittest.TestCase):
         y_test = [0, 1]
         global_model_mock.evaluate.side_effect = (
             validation_results,
+            validation_results,
             test_results
         )
         global_weights = [2, 3]

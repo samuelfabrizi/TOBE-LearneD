@@ -182,9 +182,10 @@ class Aggregator:
         :return:
         """
         if self.current_round == 0:
+            validation_results = self.global_model.evaluate(self.x_val, self.y_val)
             alpha = self.contribution_extractor.compute_contribution(
                 self.rounds2participants[self.current_round]["participant_weights"],
-                0
+                validation_results[1]
             )
         else:
             alpha = self.contribution_extractor.compute_contribution(
