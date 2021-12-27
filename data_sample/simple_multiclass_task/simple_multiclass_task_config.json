@@ -8,7 +8,7 @@
 		"features": ["x1", "x2"],
 		"labels": ["is_0", "is_1", "is_2"]
 	},
-	"fl_rounds": 10,
+	"fl_rounds": 4,
 	"epochs": 10,
 	"batch_size": 64,
 	"aggregation_method": "ensemble_general"
