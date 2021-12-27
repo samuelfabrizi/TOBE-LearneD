@@ -71,6 +71,7 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
     """
 
     def compute_contribution(self, models_weights, last_metric_result):
+        logger.debug("Last metric result: %s", last_metric_result)
         evaluation_participants = []
         for model_weight in models_weights:
             self.model.set_weights(model_weight)
