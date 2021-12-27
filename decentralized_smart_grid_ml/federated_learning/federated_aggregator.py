@@ -198,13 +198,16 @@ class Aggregator:
         )
         # save the alpha vector (contribution) in the dictionary
         self.rounds2participants[self.current_round]["alpha"] = alpha
-        # update the model
-        global_weights = weighted_average_aggregation(
-            self.rounds2participants[self.current_round]["participant_weights"],
-            alpha
-        )
-        self.global_model.set_weights(global_weights)
-        logger.debug("The global model has been updated with the new weights")
+        if sum(alpha) > 0.0:
+            # update the model
+            global_weights = weighted_average_aggregation(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                alpha
+            )
+            self.global_model.set_weights(global_weights)
+            logger.debug("The global model has been updated with the new weights")
+        else:
+            logger.debug("The global model has not been updated because alpha is %s", alpha)
         validation_results = self.global_model.evaluate(self.x_val, self.y_val)
         logger.info(
             "Evaluation of the global model on the validation set at round %d: %s",
@@ -254,10 +257,11 @@ class Aggregator:
             for participant_id, contribution in zip(fl_round_participants, contributions):
                 participant_id2contributions_count[participant_id] += contribution
         weighted_contributions = []
+        totals = sum(participant_id2contributions_count.values())
         for participant_id, total_contribution in \
                 participant_id2contributions_count.items():
             weighted_contributions.append(round(
-                total_contribution / self.announcement_config.fl_rounds, 2)
+                total_contribution / totals, 2)
             )
         return weighted_contributions
 

@@ -413,3 +413,88 @@ class TestFederatedAggregator(unittest.TestCase):
             m_o.assert_called_with(file_output_path, "w")
             handle = m_o()
             json_dump_mock.assert_called_with(statistics_expected, handle, indent="\t")
+
+    @patch(
+        "decentralized_smart_grid_ml.federated_learning.contributions_extractor.ContributionsExtractor"
+    )
+    @patch(
+        "decentralized_smart_grid_ml.contract_interactions.announcement_configuration.AnnouncementConfiguration"
+    )
+    @patch.object(pathlib.Path, 'mkdir')
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.weighted_average_aggregation")
+    @patch("tensorflow.keras.Sequential")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.save_fl_model_weights")
+    @patch("decentralized_smart_grid_ml.federated_learning.federated_aggregator.Aggregator.__init__", return_value=None)
+    def test_update_global_model_zero_alpha(
+            self, aggregator_init_mock, save_fl_model_weights_mock,
+            global_model_mock, weighted_average_aggregation_mock,
+            mkdir_mock, announcement_config_mock,
+            contributions_extractor_mock):
+        model_weights_new_round_path = "/path/to/new_model_weights/"
+        validation_results = ["0.8", "0.7"]
+        test_results = ["0.8", "0.7"]
+        announcement_config_mock.fl_rounds = 2
+        x_val = [[1, 2], [2, 3]]
+        y_val = [0, 1]
+        x_test = [[1, 2], [2, 3]]
+        y_test = [0, 1]
+        contributions_extractor_mock.compute_contribution.return_value = [0, 0]
+        global_model_mock.evaluate.side_effect = [
+            validation_results,
+            test_results
+        ]
+        global_weights = [2, 3]
+        weighted_average_aggregation_mock.return_value = global_weights
+        aggregator = Aggregator()
+        aggregator.current_round = 1
+        aggregator.announcement_config = announcement_config_mock
+        aggregator.x_val = x_val
+        aggregator.y_val = y_val
+        aggregator.x_test = x_test
+        aggregator.y_test = y_test
+        aggregator.is_finished = False
+        aggregator.contribution_extractor = contributions_extractor_mock
+        aggregator.model_weights_new_round_path = model_weights_new_round_path
+        aggregator.rounds2participants = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+                "alpha": [0.5, 0.5],
+                "validation_results": validation_results,
+                "test_results": test_results
+            },
+            1: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+            }
+        }
+        aggregator.global_model = global_model_mock
+        rounds2participants_expected = {
+            0: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+                "alpha": [0.5, 0.5],
+                "validation_results": validation_results,
+                "test_results": test_results
+            },
+            1: {
+                "valid_participant_ids": [0, 1],
+                "participant_weights": [[1, 2], [3, 4]],
+                "participant_ids": [0, 1],
+                "alpha": [0.0, 0.0],
+                "validation_results": validation_results,
+                "test_results": test_results
+            }
+        }
+        aggregator.update_global_model()
+        global_model_mock.evaluate.has_calls(
+            call(x_val, y_val),
+            call(x_test, y_test),
+        )
+        self.assertDictEqual(
+            rounds2participants_expected,
+            aggregator.rounds2participants
+        )

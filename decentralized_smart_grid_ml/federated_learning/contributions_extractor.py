@@ -76,10 +76,10 @@ class ContributionsExtractorEnsembleGeneral(ContributionsExtractor):
         for model_weight in models_weights:
             self.model.set_weights(model_weight)
             evaluation_participant = self.model.evaluate(self.x_validation, self.y_validation)[1]
-            if evaluation_participant - last_metric_result > 0:
+            if evaluation_participant - last_metric_result > 0.0:
                 evaluation_improvement = evaluation_participant - last_metric_result
             else:
-                evaluation_improvement = 0
+                evaluation_improvement = 0.0
             evaluation_participants.append(evaluation_improvement)
         logger.debug("Participants models' evaluation: %s", evaluation_participants)
         sum_eval = sum(evaluation_participants)
