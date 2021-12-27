@@ -38,7 +38,7 @@ class TestContributionsExtractor(unittest.TestCase):
     # test added only for coverage
     def test_compute_contribution(self):
         contributions_extractor = ContributionsExtractor("model", "x_validation", "y_validation")
-        contributions_extractor.compute_contribution(None)
+        contributions_extractor.compute_contribution(None, None)
 
     @patch("tensorflow.keras.Sequential")
     def test_compute_contribution_ensemble_general(self, model_mock):
@@ -51,7 +51,8 @@ class TestContributionsExtractor(unittest.TestCase):
             ["loss0", models_evaluation[0]],
             ["loss1", models_evaluation[1]],
         ]
-        contributions_extractor.compute_contribution(participants_weights)
+        alpha_expected = [1.0, 0.0]
+        alpha = contributions_extractor.compute_contribution(participants_weights, 0.5)
         model_mock.set_weights.assert_has_calls([
             call(participants_weights[0]),
             call(participants_weights[1])
@@ -60,6 +61,7 @@ class TestContributionsExtractor(unittest.TestCase):
             call(x_val, y_val),
             call(x_val, y_val)
         ])
+        self.assertListEqual(alpha_expected, alpha)
 
     def test_compute_contribution_simple_average(self):
         x_val = [[1, 2], [2, 3]]
@@ -67,5 +69,5 @@ class TestContributionsExtractor(unittest.TestCase):
         participants_weights = [[1, 2], [3, 4]]
         contributions_extractor = ContributionsExtractorSimpleAverage(None, x_val, y_val)
         alpha_expected = [0.5, 0.5]
-        alpha = contributions_extractor.compute_contribution(participants_weights)
+        alpha = contributions_extractor.compute_contribution(participants_weights, 0)
         self.assertListEqual(alpha_expected, alpha)
