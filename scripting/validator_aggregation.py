@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import time
+from random import randint
 
 from watchdog.observers import Observer
 from web3 import Web3, HTTPProvider
@@ -128,9 +129,16 @@ if __name__ == '__main__':
     participants_contributions = aggregator.get_participants_contributions()
     logger.info("Participants identifiers: %s", aggregator.participant_ids)
     logger.info("Final contributions: %s", participants_contributions)
+
     percentage_participants_contributions = [
         int(contribution * 100) for contribution in participants_contributions
     ]
+
+    while sum(percentage_participants_contributions) > 100:
+        idx_participant = randint(0, number_participants-1)
+        percentage_participants_contributions[idx_participant] -= 1
+    logger.info("Final percentage contributions: %s", percentage_participants_contributions)
+
     contract.functions.endTask(percentage_participants_contributions).transact(
         {'from': validator_address}
     )
