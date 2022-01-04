@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # constants
-N_PARTICIPANTS=3
+N_PARTICIPANTS=4
 
 # environment variables
 export PYTHONPATH="../"
@@ -67,12 +67,25 @@ sleep 5
 # run the participants
 for (( idx_participant=0; idx_participant<$N_PARTICIPANTS; idx_participant++ ))
 do
-  python participant_fl_training.py \
-  --contract_info_path \
-  /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
-  --participant_id \
-  $idx_participant \
-  --validator_directory_path \
-  /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/validator &
-  sleep 3
+  if [[ $idx_participant -eq 0 ]]
+  then
+    python participant_fl_training.py \
+    --contract_info_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
+    --participant_id \
+    $idx_participant \
+    --validator_directory_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/validator \
+    --use_fake_weights &
+    sleep 3
+  else
+    python participant_fl_training.py \
+    --contract_info_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
+    --participant_id \
+    $idx_participant \
+    --validator_directory_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/validator &
+    sleep 3
+  fi
 done
