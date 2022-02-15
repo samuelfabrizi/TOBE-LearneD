@@ -2,8 +2,8 @@
 	"task_name": "appliance_classification_task",
 	"task_description": "The task proposed is a supervised multi-classification task used to identify the appliances in a house",
 	"baseline_model_artifact": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/model",
-	"baseline_model_weights": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/model_config.json",
-	"baseline_model_config": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/model_weights.json",
+	"baseline_model_weights": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/model_weights.json",
+	"baseline_model_config": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/appliance_classification_task/model_config.json",
 	"features_names": {
 		"features": ["month", "day", "day_of_week", "hour", "minute", "max_value", "min_value", "mean_value"],
 		"labels": ["is Dish Washer", "is Freezer", "is Refrigerator", "is Washing Machine"]
