@@ -23,12 +23,20 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
+        '--validation_size',
+        dest='validation_size',
+        metavar='validation_size',
+        type=float,
+        help='The size of the validation set, it has to be a float value between 0 and 1.0',
+        default=0.2
+    )
+    parser.add_argument(
         '--test_size',
         dest='test_size',
         metavar='test_size',
         type=float,
         help='The size of the test set, it has to be a float value between 0 and 1.0',
-        default=0.2
+        default=0.15
     )
     parser.add_argument(
         '--n_participants',
@@ -58,18 +66,27 @@ if __name__ == '__main__':
         dest='shuffle',
         action='store_true',
         help='Flag used to indicates if you want to shuffle the dataset before the split',
-        default=False,
+        default=False
+    )
+    parser.add_argument(
+        '--unbalanced',
+        dest='unbalanced',
+        action='store_true',
+        help="Flag used to indicates if you want unbalanced partitions for the participants' dataset",
+        default=False
     )
 
     args = parser.parse_args()
     logger.info("Starting dataset split script")
 
-    dataset_test, datasets_participants = split_dataset_validator_participants(
+    dataset_test, dataset_validation, datasets_participants = split_dataset_validator_participants(
         args.dataset_path,
         args.n_participants,
+        args.validation_size,
         args.test_size,
         random_state=args.random_state,
-        shuffle=args.shuffle
+        shuffle=args.shuffle,
+        unbalanced=args.unbalanced
     )
     dataset_name = Path(args.dataset_path).stem
     # store the participants' local datasets
@@ -83,7 +100,7 @@ if __name__ == '__main__':
             directory_participant,
             dataset_name + "_" + str(idx_participant) + ".csv"
         )
-        dataset_participant.to_csv(str(dataset_participant_path))
+        dataset_participant.to_csv(str(dataset_participant_path), index=False)
         logger.info("Dataset participant %d saved in %s", idx_participant, dataset_participant_path)
     directory_validator = os.path.join(
         args.ml_task_directory_path,
@@ -94,6 +111,13 @@ if __name__ == '__main__':
         directory_validator,
         dataset_name + "_test.csv"
     )
-    logger.info("Test set validator saved in %s", dataset_test_path)
     # store the validator's test datasets
-    dataset_test.to_csv(str(dataset_test_path))
+    dataset_test.to_csv(str(dataset_test_path), index=False)
+    logger.info("Test set validator saved in %s", dataset_test_path)
+    dataset_validation_path = os.path.join(
+        directory_validator,
+        dataset_name + "_validation.csv"
+    )
+    # store the validator's test datasets
+    dataset_validation.to_csv(str(dataset_validation_path), index=False)
+    logger.info("Validation set validator saved in %s", dataset_validation_path)

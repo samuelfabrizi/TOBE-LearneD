@@ -3,16 +3,20 @@ This script runs the Federate Learning life cycle of the validator
 """
 import argparse
 import json
+import os
 import sys
 import time
+from random import randint
 
 from watchdog.observers import Observer
 from web3 import Web3, HTTPProvider
 
-from decentralized_smart_grid_ml.contract_interactions.announcement_factory import announcement_factory
+from decentralized_smart_grid_ml.contract_interactions.announcement_configuration import \
+    AnnouncementConfiguration
 from decentralized_smart_grid_ml.federated_learning.federated_aggregator import Aggregator
 from decentralized_smart_grid_ml.handlers.validator_handler import ValidatorHandler
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
+from decentralized_smart_grid_ml.utils.config import BLOCKCHAIN_ADDRESS, ANNOUNCEMENT_JSON_PATH, get_addresses_contracts
 
 logger = create_logger(__name__)
 
@@ -20,27 +24,19 @@ logger = create_logger(__name__)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--blockchain_address',
-        dest='blockchain_address',
-        metavar='blockchain_address',
+        '--contract_info_path',
+        dest='contract_info_path',
+        metavar='contract_info_path',
         type=str,
-        help='The address of the blockchain',
+        help="File path to the json file that contains announcement's contract information",
         required=True
     )
     parser.add_argument(
-        '--announcement_contract_address',
-        dest='announcement_contract_address',
-        metavar='announcement_contract_address',
+        '--validation_set_path',
+        dest='validation_set_path',
+        metavar='validation_set_path',
         type=str,
-        help='The address of the announcement contract',
-        required=True
-    )
-    parser.add_argument(
-        '--announcement_json_path',
-        dest='announcement_json_path',
-        metavar='announcement_json_path',
-        type=str,
-        help='The file path to the json announcement contract',
+        help='The file path to the validation set',
         required=True
     )
     parser.add_argument(
@@ -52,14 +48,6 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--n_participants',
-        dest='n_participants',
-        metavar='n_participants',
-        type=int,
-        help='The number of participants',
-        required=True
-    )
-    parser.add_argument(
         '--model_weights_new_round_path',
         dest='model_weights_new_round_path',
         metavar='model_weights_new_round_path',
@@ -67,8 +55,6 @@ if __name__ == '__main__':
         help="The directory path to the model's weights for each round",
         required=True
     )
-    # TODO: this argument has to be removed when we implemented the communication between
-    #       validator and participants
     parser.add_argument(
         '--participant_weights_path',
         dest='participant_weights_path',
@@ -82,31 +68,42 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logger.info("Starting validator job")
 
+    announcement_contract_address, dex_contract_address = get_addresses_contracts(args.contract_info_path)
+
     # Client instance to interact with the blockchain
-    web3 = Web3(HTTPProvider(args.blockchain_address))
-    logger.info("Connected to the blockchain %s", args.blockchain_address)
+    web3 = Web3(HTTPProvider(BLOCKCHAIN_ADDRESS))
+    logger.info("Connected to the blockchain %s", BLOCKCHAIN_ADDRESS)
 
-    # Path to the compiled contract JSON file
-    compiled_announcement_contract_path = args.announcement_json_path
-
-    with open(compiled_announcement_contract_path) as file:
+    with open(ANNOUNCEMENT_JSON_PATH) as file:
         contract_json = json.load(file)  # load contract info as JSON
         contract_abi = contract_json['abi']  # fetch contract's abi - necessary to call its functions
 
     # Fetch deployed contract reference
-    contract = web3.eth.contract(address=args.announcement_contract_address, abi=contract_abi)
-    logger.info("Fetched contract %s", args.announcement_contract_address)
+    contract = web3.eth.contract(address=announcement_contract_address, abi=contract_abi)
+    logger.info("Fetched contract %s", announcement_contract_address)
 
     # automatically takes the last address
-    validator_address = web3.eth.accounts[-1]
+    validator_address = web3.eth.accounts[5]
     # extract the Announcement information from the smart contract
-    announcement = announcement_factory(validator_address, contract)
+    announcement_configuration = AnnouncementConfiguration.retrieve_announcement_configuration(
+        validator_address, contract
+    )
 
-    # TODO: change the participant_ids with the relative attribute in the Announcement
-    participant_ids = list(range(args.n_participants))
+    maximum_number_participants = contract.functions.maxNumberParticipant().call({"from": validator_address})
+    isStarted = False
+
+    while not isStarted:
+        number_participants = contract.functions.currentNumberParticipant().call({"from": validator_address})
+        if number_participants != maximum_number_participants:
+            logger.info("We need to wait that other participants subscribe to the task")
+            time.sleep(2)
+        else:
+            isStarted = True
+
     aggregator = Aggregator(
-        participant_ids,
-        announcement,
+        list(range(number_participants)),
+        announcement_configuration,
+        args.validation_set_path,
         args.test_set_path,
         args.model_weights_new_round_path
     )
@@ -122,9 +119,34 @@ if __name__ == '__main__':
     try:
         while not aggregator.is_finished:
             time.sleep(1)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as e:
         # stop and join the observer
         validator_observer.stop()
         validator_observer.join()
+        logger.exception(e)
+        logger.error("The validator did not completed his work")
+        sys.exit(-1)
+    participants_contributions = aggregator.get_participants_contributions()
+    logger.info("Participants identifiers: %s", aggregator.participant_ids)
+    logger.info("Final contributions: %s", participants_contributions)
+
+    percentage_participants_contributions = [
+        int(contribution * 100) for contribution in participants_contributions
+    ]
+
+    while sum(percentage_participants_contributions) > 100:
+        idx_participant = randint(0, number_participants-1)
+        percentage_participants_contributions[idx_participant] -= 1
+    logger.info("Final percentage contributions: %s", percentage_participants_contributions)
+
+    contract.functions.endTask(percentage_participants_contributions).transact(
+        {'from': validator_address}
+    )
+
+    statistics_output_path = os.path.join(
+        args.model_weights_new_round_path,
+        "statistics.json"
+    )
+    aggregator.write_statistics(statistics_output_path)
     logger.info("The validator terminated his work with success")
     sys.exit(0)

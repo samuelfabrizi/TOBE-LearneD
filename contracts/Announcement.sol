@@ -1,50 +1,58 @@
-pragma solidity >=0.4.22 <0.9.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./GreenDEX.sol";
+import "./GreenToken.sol";
+
 
 /// @title Announcement
-/// @notice This contract contains all the information related to the announcement
-///         of a ML task proposed
+/// @notice This contract contains all the information related to
+///         the announcement of a ML task proposed
 contract Announcement {
 
-  /// @title ParticipantSubscription
-  /// @notice This struct contains the participants's information
-  struct ParticipantSubscription {
-    bool isSubscribed;
-    bool[] rounds;
-  }
+  using SafeMath for uint256;
 
   // address of the manufacturer
   address public manufacturerAddress;
-  // name of the task
-  bytes32 public taskName;
-  // we can move the description in a decentralized storage
-  // if it requires too much gas
-  // description of the task
-  bytes32 public taskDescription;
-  // TODO: for now the deadlineDate is only the number of days
-  // date of the deadline
-  uint256 public deadlineDate;
-  // directory path to the whole model (both config and weights)
-  string public modelArtifact;
-  // this field is only to show a human-readable model's config
-  // file path to model's config
-  string public modelConfig;
-  // actually this is not used by the participants, it is contained
-  // in modelArtifact
-  // file path to model's weights
-  string public modelWeights;
-  // file path to the name of the ML task features
-  string public featuresNames;
-  // number of rounds for the federated learning
-  uint8 public flRound;
-  mapping(address => ParticipantSubscription) private participants;
+  // in a real implementation this attribute corresponds to
+  // the CID
+  // path to the task's configuration file
+  string public taskConfiguration;
+  // maximum number of participants admitted in the task
+  uint8 public maxNumberParticipant;
+  // number of participants subscribed in the task
+  uint8 public currentNumberParticipant;
+  // number of tokens stake
+  uint256 public tokensAtStake;
+  // percentage of tokens to assign to the validator
+  uint8 public percentageRewardValidator;
+  // mapping from participant address to boolean that indicates
+  // whether the participant is subscribed in the task
+  mapping(address => bool) private participants;
+  // mapping from participant address to participant id
+  mapping(address => uint8) private participant2id;
+  // array of participants' addresses
+  address[] public participantsAddress;
+  // participants' identifiers
+  uint8[] public participantIds;
+  // array of reward percentage to assign to each participant
+  uint8[] public percentageParticipantsReward;
+  // boolean variable that indicates if the task is finished (true)
+  bool public isFinished = false;
+  // address of the validator (trusted)
+  address public validatorAddress;
+  // GreenToken smart contract instance
+  GreenToken public greenToken;
 
   /// @notice Sets the manufacturer address
-  constructor () public {
+  /// @param _greenDexAddress address of the GreenDEX instance
+  constructor (address _greenDexAddress) {
     manufacturerAddress = msg.sender;
+    greenToken = GreenToken(GreenDEX(_greenDexAddress).greenToken());
   }
 
-  /// @notice Check if the sender address corresponds
-  ///         to the manufacturer address
+  /// @notice Checks if the sender address corresponds to the manufacturer address
   modifier onlyManufacturer() {
     require(
       msg.sender == manufacturerAddress,
@@ -53,50 +61,126 @@ contract Announcement {
     _;
   }
 
+  /// @notice Checks if the sender address corresponds to the validator address
+  modifier onlyValidator() {
+    require(
+      msg.sender == validatorAddress,
+      "Sender not authorized"
+    );
+    _;
+  }
+
+  /// @notice Checks if the sender is subscribed in the task
+  modifier newSubscription() {
+    require(
+      participants[msg.sender] == false,
+      "Participant already subscribed"
+    );
+    _;
+  }
+
+  /// @notice Checks if the sender is not already subscribed in the task
+  modifier isSubscribed() {
+    require(
+      participants[msg.sender] == true,
+      "Participant not subscribed"
+    );
+    _;
+  }
+
+  /// @notice Checks if the task is already started
+  modifier notAlreadyStarted() {
+    require(
+      currentNumberParticipant != maxNumberParticipant,
+      "The task is already started"
+    );
+    _;
+  }
+
+  /// @notice Checks if the task is finished
+  modifier taskFinished(){
+    require(
+      isFinished == true,
+      "The task is still in progress"
+    );
+    _;
+  }
+
   /// @notice Initializes the announcement
-  /// @param _taskName name of the task
-  /// @param _taskDescription description of the task
-  /// @param _deadlineDate date of the deadline
-  /// @param _modelArtifact directory path to the whole model
-  ///        (both config and weights)
-  /// @param _modelConfig file path to model's config
-  /// @param _modelWeights file path to model's weights
-  /// @param _featuresNames file path to the name of the ML task features
-  /// @param _flRound number of rounds for the federated learning
+  /// @param _taskConfiguration path to the task's configuration file
+  /// @param _maxNumberParticipant maximum number of participants admitted in the task
+  /// @param _tokensAtStake number of tokens at stake
+  /// @param _percentageRewardValidator percentage of tokens to assign to the validator  in (0, 100)
+  /// @param _validatorAddress address of the validator (trusted)
   function initialize (
-    bytes32 _taskName,
-    bytes32 _taskDescription,
-    uint256 _deadlineDate,
-    string memory _modelArtifact,
-    string memory _modelConfig,
-    string memory _modelWeights,
-    string memory _featuresNames,
-    uint8 _flRound
-    )
-    public onlyManufacturer() {
-    taskName = _taskName;
-    taskDescription = _taskDescription;
-    deadlineDate = _deadlineDate;
-    modelArtifact = _modelArtifact;
-    modelConfig = _modelConfig;
-    modelWeights = _modelWeights;
-    featuresNames = _featuresNames;
-    flRound = _flRound;
+    string memory _taskConfiguration,
+    uint8 _maxNumberParticipant,
+    uint256 _tokensAtStake,
+    uint8 _percentageRewardValidator,
+    address _validatorAddress
+    ) public onlyManufacturer() {
+      require(
+        _maxNumberParticipant > 1,
+        "Insufficient max participants"
+      );
+      require(
+        _tokensAtStake > 0,
+        "Not empty rewards"
+      );
+      require(
+        _percentageRewardValidator > 0,
+        "Not empty validator reward"
+      );
+      require(
+        _percentageRewardValidator < 100,
+        "Not percentage validator reward"
+      );
+      taskConfiguration = _taskConfiguration;
+      maxNumberParticipant = _maxNumberParticipant;
+      tokensAtStake = _tokensAtStake;
+      percentageRewardValidator = _percentageRewardValidator;
+      currentNumberParticipant = 0;
+      participantsAddress = new address[](maxNumberParticipant);
+      validatorAddress =_validatorAddress;
   }
 
   /// @notice Subscribes the sender in the announcement
-  function subscribe() public {
-    participants[msg.sender] = ParticipantSubscription(
-      true,
-      new bool[](flRound)
-    );
+  function subscribe() public notAlreadyStarted() newSubscription() {
+    participants[msg.sender] = true;
+    participant2id[msg.sender] = currentNumberParticipant;
+    participantsAddress[currentNumberParticipant] = msg.sender;
+    currentNumberParticipant = currentNumberParticipant + 1;
   }
 
-  /// @notice Checks if the sender is subscribed
-  /// @return True if the sendes is subscribed
-  ///         False otherwise
-  function isSubscribed() public view returns(bool) {
-    return participants[msg.sender].isSubscribed;
+  /// @notice Retrieves the participant' id of the caller
+  /// @return participant id
+  function getParticipantId() public view isSubscribed() returns(uint8) {
+    return participant2id[msg.sender];
+  }
+
+  /// @notice Defines the end of task
+  /// @param _percentageParticipantsReward array of participants' rewards (percentage)
+  function endTask(uint8[] memory _percentageParticipantsReward) public onlyValidator() {
+    percentageParticipantsReward = _percentageParticipantsReward;
+    isFinished = true;
+  }
+
+  /// @notice Assigns the rewards to both validator and participants
+  function assignRewards() public taskFinished() onlyManufacturer() {
+    require(
+      greenToken.balanceOf(address(this)) >= tokensAtStake,
+      "Insufficient balance"
+    );
+    uint validatorReward = tokensAtStake.mul(
+      percentageRewardValidator).div(100);
+    greenToken.transfer(validatorAddress, validatorReward);
+    uint256 remainingReward = tokensAtStake.sub(validatorReward);
+    for (uint i = 0; i < currentNumberParticipant; i++){
+      uint256 rewardParticipant = remainingReward.mul(
+        percentageParticipantsReward[i]).div(100);
+      greenToken.transfer(participantsAddress[i], rewardParticipant);
+    }
+
   }
 
 }

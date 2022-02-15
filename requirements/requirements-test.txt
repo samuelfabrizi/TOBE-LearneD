@@ -1,2 +1,8 @@
 pylint==2.10.0
 coverage==6.0
+tensorboard==2.6.0
+tensorflow==2.7.0
+pandas==1.3.3
+numpy==1.19.5
+watchdog==2.1.6
+genbadge==1.0.6

@@ -17,5 +17,12 @@ class NotValidParticipantsModelsError(DecentralizedSmartGridML):
 
 
 class NotValidAlphaVectorError(DecentralizedSmartGridML):
-    """ This exception arises when the vector of the weights (alpha) is
-    not valid """
+    """ This exception arises when the vector of the weights (alpha) is not valid """
+
+
+class NotValidAggregationMethod(DecentralizedSmartGridML):
+    """ This exception arises when the aggregation method is not valid """
+
+
+class MalformedConfigurationJson(DecentralizedSmartGridML):
+    """ This exception arises when a json configuration file is malformed"""

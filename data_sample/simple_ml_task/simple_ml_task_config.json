@@ -1,0 +1,15 @@
+{
+	"task_name": "simple_ml_task",
+	"task_description": "The task proposed is a supervised binary classification task with random generated data",
+	"baseline_model_artifact": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/model",
+	"baseline_model_weights": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/model_weights.json",
+	"baseline_model_config": "/home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_ml_task/model_config.json",
+	"features_names": {
+		"features": ["x1", "x2"],
+		"labels": "y"
+	},
+	"fl_rounds": 4,
+	"epochs": 5,
+	"batch_size": 32,
+	"aggregation_method": "ensemble_general"
+}

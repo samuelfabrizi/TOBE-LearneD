@@ -2,6 +2,7 @@
 This module contains both functions and classes used to aggregate the local models' weights
 in the global one
 """
+import json
 import os
 from pathlib import Path
 
@@ -9,6 +10,8 @@ import pandas as pd
 
 from decentralized_smart_grid_ml.exceptions import NotValidParticipantsModelsError, \
     NotValidAlphaVectorError
+from decentralized_smart_grid_ml.federated_learning.contributions_extractor import \
+    ContributionsExtractorCreator
 from decentralized_smart_grid_ml.federated_learning.models_reader_writer import load_fl_model, \
     load_fl_model_weights, save_fl_model_weights
 from decentralized_smart_grid_ml.utils.bcai_logging import create_logger
@@ -22,18 +25,23 @@ def _index_in_list(a_list, index):
 
 def weighted_average_aggregation(models_weights, alpha):
     """
-    Computes the weighted average of the participants' weights according to a given probability vector
+    Computes the weighted average of the participants' weights
+    according to a given probability vector
     :param models_weights: weights of the participants' models
     :param alpha: probability vector for the weighted average
     :return: weighted average of weights
     """
-    if sum(alpha) != 1:
+    if round(sum(alpha), 2) != 1:
         logger.error("The vector alpha is not valid %s", alpha)
         raise NotValidAlphaVectorError("Error in the alpha vector")
     if len(models_weights) != len(alpha):
-        logger.error("The number of participants' weights (%d) and the vector alpha cardinality (%d) "
-                     "does not correspond", len(models_weights), len(alpha))
-        raise NotValidParticipantsModelsError("Error in the number of weights and/or alpha cardinality")
+        logger.error(
+            "The number of participants' weights (%d) and the vector alpha cardinality (%d) "
+            "does not correspond", len(models_weights), len(alpha)
+        )
+        raise NotValidParticipantsModelsError(
+            "Error in the number of weights and/or alpha cardinality"
+        )
     logger.info("Start models' weights aggregation of %d participants", len(alpha))
     aggregated_weights = []
     for idx_participant, local_weights in enumerate(models_weights):
@@ -63,26 +71,36 @@ def weighted_average_aggregation(models_weights, alpha):
 class Aggregator:
     """ This class is responsible for the participant models' aggregation """
 
-    def __init__(self, participant_ids, announcement, test_set_path,
-                 model_weights_new_round_path):
+    def __init__(self, participant_ids, announcement_config, validation_set_path,
+                 test_set_path, model_weights_new_round_path):
         """
         Initializes the aggregator
         :param participant_ids: participants' identifier
-        :param announcement: dictionary that corresponds to the announcement
+        :param announcement_config: instance of AnnouncementConfiguration class
+        :param validation_set_path: file path to the validation set
         :param test_set_path: file path to the test set
         :param model_weights_new_round_path: path to the directory that will contain the
             new model's weights (one for each round)
         """
         self.participant_ids = participant_ids
-        self.announcement = announcement
-        self.global_model = load_fl_model(announcement["global_model_path"])
+        self.announcement_config = announcement_config
+        self.global_model = load_fl_model(announcement_config.baseline_model_artifact)
         test_set_df = pd.read_csv(test_set_path)
-        # TODO: generalize this function to extract features and labels from the dataset
-        self.x_test, self.y_test = test_set_df[["x1", "x2"]].values, test_set_df["y"].values
+        validation_set_df = pd.read_csv(validation_set_path)
+        self.x_val = validation_set_df[self.announcement_config.features_names["features"]].values
+        self.y_val = validation_set_df[self.announcement_config.features_names["labels"]].values
+        self.x_test = test_set_df[self.announcement_config.features_names["features"]].values
+        self.y_test = test_set_df[self.announcement_config.features_names["labels"]].values
         self.rounds2participants = {}
         self._initialize_rounds2participants()
         self.current_round = 0
         self.model_weights_new_round_path = model_weights_new_round_path
+        self.contribution_extractor = ContributionsExtractorCreator.factory_method(
+            announcement_config.aggregation_method,
+            self.global_model,
+            self.x_val,
+            self.y_val
+        )
         self.is_finished = False
 
     def _initialize_rounds2participants(self):
@@ -90,9 +108,11 @@ class Aggregator:
         Initialize the rounds to participant information mapping
         :return:
         """
-        for idx_round in range(self.announcement["n_fl_rounds"]):
+        for idx_round in range(self.announcement_config.fl_rounds):
             self.rounds2participants[idx_round] = {
-                # TODO: takes a subset of the participant ids at each round
+                # here the first key is not need for our purpose. In a future,
+                # it will be possible to use it to take only a subset
+                # of participants for each round
                 "valid_participant_ids": self.participant_ids,
                 "participant_weights": [],
                 "participant_ids": []
@@ -156,50 +176,56 @@ class Aggregator:
             is_completed = False
         return is_completed
 
-    def _compute_participants_contribution(self, models_weights, participant_ids):
-        """
-        Computes the participants' contribution
-        :param models_weights: participants models' weights (one for each participant in this round)
-        :param participant_ids: participants' identifier (one for each participant in this round)
-        :return: vector of the contribution
-        """
-        n_participants = len(participant_ids)
-        # TODO: implement the mechanism to compute the actual participants' contribution
-        alpha = [1.0 / n_participants for _ in range(n_participants)]
-        logger.info(
-            "Alpha vector for round %d is %s",
-            self.current_round, alpha
-        )
-        return alpha
-
     def update_global_model(self):
         """
         Updates the global model and save both contribution and the evalution of the new model
         :return:
         """
-        alpha = self._compute_participants_contribution(
-            self.rounds2participants[self.current_round]["participant_weights"],
+        if self.current_round == 0:
+            validation_results = self.global_model.evaluate(self.x_val, self.y_val)
+            alpha = self.contribution_extractor.compute_contribution(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                validation_results[1]
+            )
+        else:
+            alpha = self.contribution_extractor.compute_contribution(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                self.rounds2participants[self.current_round-1]["validation_results"][1],
+            )
+        logger.info(
+            "Alpha vector for round %d is %s relative to participant ids %s",
+            self.current_round, alpha,
             self.rounds2participants[self.current_round]["participant_ids"]
         )
         # save the alpha vector (contribution) in the dictionary
         self.rounds2participants[self.current_round]["alpha"] = alpha
-        # update the model
-        global_weights = weighted_average_aggregation(
-            self.rounds2participants[self.current_round]["participant_weights"],
-            alpha
-        )
-        self.global_model.set_weights(global_weights)
-        logger.debug("The global model has been updated with the new weights")
-        evaluation_round = self.global_model.evaluate(self.x_test, self.y_test)
+        if sum(alpha) > 0.0:
+            # update the model
+            global_weights = weighted_average_aggregation(
+                self.rounds2participants[self.current_round]["participant_weights"],
+                alpha
+            )
+            self.global_model.set_weights(global_weights)
+            logger.debug("The global model has been updated with the new weights")
+        else:
+            logger.debug("The global model has not been updated because alpha is %s", alpha)
+        validation_results = self.global_model.evaluate(self.x_val, self.y_val)
         logger.info(
-            "Evaluation of the global model at round %d: %s",
+            "Evaluation of the global model on the validation set at round %d: %s",
             self.current_round,
-            evaluation_round
+            validation_results
         )
-        self.rounds2participants[self.current_round]["evaluation"] = evaluation_round
+        self.rounds2participants[self.current_round]["validation_results"] = validation_results
+        test_results = self.global_model.evaluate(self.x_test, self.y_test)
+        logger.info(
+            "Evaluation of the global model on the test set at round %d: %s",
+            self.current_round,
+            validation_results
+        )
+        self.rounds2participants[self.current_round]["test_results"] = test_results
         # next round can start
         self.current_round += 1
-        if self.current_round == self.announcement["n_fl_rounds"]:
+        if self.current_round == self.announcement_config.fl_rounds:
             baseline_file_name = os.path.join(
                 self.model_weights_new_round_path,
                 "validator_weights_final.json"
@@ -213,3 +239,43 @@ class Aggregator:
         output_folder = Path(self.model_weights_new_round_path)
         output_folder.mkdir(parents=True, exist_ok=True)
         save_fl_model_weights(self.global_model, baseline_file_name)
+
+    def get_participants_contributions(self):
+        """
+        Computes the participants' contribution considering the partial
+        contribution obtained at each round
+        :return: list of contributions (sum up to 1). The i-th contribution
+            corresponds to the i-th participants (same positions of self.participant_ids)
+        """
+        participant_id2contributions_count = {}
+        for participant_id in self.participant_ids:
+            # here the key is the participant id while
+            # the value is the sum of the participants' contribution
+            participant_id2contributions_count[participant_id] = 0
+        for idx_round in range(self.announcement_config.fl_rounds):
+            fl_round_participants = self.rounds2participants[idx_round]["participant_ids"]
+            contributions = self.rounds2participants[idx_round]["alpha"]
+            for participant_id, contribution in zip(fl_round_participants, contributions):
+                participant_id2contributions_count[participant_id] += contribution
+        weighted_contributions = []
+        totals = sum(participant_id2contributions_count.values())
+        for participant_id, total_contribution in \
+                participant_id2contributions_count.items():
+            weighted_contributions.append(round(
+                total_contribution / totals, 2)
+            )
+        return weighted_contributions
+
+    def write_statistics(self, output_file_path):
+        """
+        Writes in output the statistics computed during the framework execution
+        :param output_file_path: output file path
+        :return:
+        """
+        copy_statistics = self.rounds2participants.copy()
+        for idx_round in range(self.announcement_config.fl_rounds):
+            del copy_statistics[idx_round]["participant_weights"]
+            del copy_statistics[idx_round]["valid_participant_ids"]
+        with open(output_file_path, "w") as file_read:
+            json.dump(copy_statistics, file_read, indent="\t")
+        logger.info("Aggregator's statistics saved in %s", output_file_path)

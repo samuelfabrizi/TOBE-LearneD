@@ -1,6 +1,7 @@
 """
 This module contains the class responsible for the training of the local participant's model
 """
+import json
 import os
 from pathlib import Path
 
@@ -16,24 +17,22 @@ logger = create_logger(__name__)
 class FederatedLocalTrainer:
     """ This class is responsible for the training of the local participant's model """
 
-    def __init__(self, participant_id, announcement,
-                 train_set_path, epochs, local_model_weights_path):
+    def __init__(self, participant_id, announcement_config,
+                 train_set_path, local_model_weights_path):
         """
         Initialized the local trainer
         :param participant_id: id of the participant
-        :param announcement: dictionary that corresponds to the announcement
+        :param announcement_config: instance of AnnouncementConfiguration class
         :param train_set_path: file path to the training set
-        :param epochs: number of epochs
         :param local_model_weights_path: path to the directory that will contain the
             local model's weights(one for each round)
         """
         self.participant_id = participant_id
-        self.announcement = announcement
-        self.local_model = load_fl_model(announcement["global_model_path"])
+        self.announcement_config = announcement_config
+        self.local_model = load_fl_model(announcement_config.baseline_model_artifact)
         train_set_df = pd.read_csv(train_set_path)
-        # TODO: generalize this function to extract features and labels from the dataset
-        self.x_train, self.y_train = train_set_df[["x1", "x2"]].values, train_set_df["y"].values
-        self.epochs = epochs
+        self.x_train = train_set_df[self.announcement_config.features_names["features"]].values
+        self.y_train = train_set_df[self.announcement_config.features_names["labels"]].values
         self.local_model_weights_path = local_model_weights_path
         self.rounds2history = {}
         self._initialize_rounds2history()
@@ -45,7 +44,7 @@ class FederatedLocalTrainer:
         Initialize the rounds to history information mapping
         :return:
         """
-        for idx_round in range(self.announcement["n_fl_rounds"]):
+        for idx_round in range(self.announcement_config.fl_rounds):
             self.rounds2history[idx_round] = None
 
     def fit_local_model(self, path_file_created):
@@ -67,7 +66,11 @@ class FederatedLocalTrainer:
                     # update the weights of the new baseline model for this round
                     self.local_model.set_weights(aggregated_weights)
                     # fit the local model
-                    history = self.local_model.fit(self.x_train, self.y_train, epochs=self.epochs)
+                    history = self.local_model.fit(
+                        self.x_train, self.y_train,
+                        epochs=self.announcement_config.epochs,
+                        batch_size=self.announcement_config.batch_size
+                    )
                 else:
                     logger.warning(
                         "The path %s does not correspond to the current round (%d), Skipping...",
@@ -80,7 +83,11 @@ class FederatedLocalTrainer:
                 )
         else:
             # first round: the baseline model is in global_model_path
-            history = self.local_model.fit(self.x_train, self.y_train, epochs=self.epochs)
+            history = self.local_model.fit(
+                self.x_train, self.y_train,
+                epochs=self.announcement_config.epochs,
+                batch_size=self.announcement_config.batch_size
+            )
         if history is not None:
             local_model_weights_path = os.path.join(
                 self.local_model_weights_path,
@@ -88,9 +95,22 @@ class FederatedLocalTrainer:
             )
             output_folder = Path(self.local_model_weights_path)
             output_folder.mkdir(parents=True, exist_ok=True)
-            self.rounds2history[self.current_round] = history
+            self.rounds2history[self.current_round] = history.history
             logger.info("Participant %s: end FL round %s", self.participant_id, self.current_round)
             self.current_round += 1
             save_fl_model_weights(self.local_model, local_model_weights_path)
-        self.is_finished = self.current_round == self.announcement["n_fl_rounds"]
+        self.is_finished = self.current_round == self.announcement_config.fl_rounds
         return self.is_finished
+
+    def write_statistics(self, output_file_path):
+        """
+        Writes in output the statistics computed during the framework execution
+        :param output_file_path: output file path
+        :return:
+        """
+        with open(output_file_path, "w") as file_read:
+            json.dump(self.rounds2history, file_read, indent="\t")
+        logger.info(
+            "Participant_%s's statistics saved in %s",
+            self.participant_id, output_file_path
+        )
