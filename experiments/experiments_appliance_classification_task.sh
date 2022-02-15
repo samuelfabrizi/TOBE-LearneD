@@ -29,7 +29,7 @@ $N_PARTICIPANTS \
 --random_state \
 42 \
 --shuffle \
---unbalanced
+#--unbalanced
 
 # create the announcement
 python create_announcement.py \

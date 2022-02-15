@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # constants
-N_PARTICIPANTS=2
+N_PARTICIPANTS=4
 
 # environment variables
 export PYTHONPATH="../"

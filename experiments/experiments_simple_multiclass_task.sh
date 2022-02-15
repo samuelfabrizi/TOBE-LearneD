@@ -28,8 +28,7 @@ $N_PARTICIPANTS \
 /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/ \
 --random_state \
 42 \
---shuffle \
---unbalanced
+--shuffle
 
 # create the announcement
 python create_announcement.py \
@@ -67,12 +66,24 @@ sleep 5
 # run the participants
 for (( idx_participant=0; idx_participant<$N_PARTICIPANTS; idx_participant++ ))
 do
-  python participant_fl_training.py \
-  --contract_info_path \
-  /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
-  --participant_id \
-  $idx_participant \
-  --validator_directory_path \
-  /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/validator &
-  sleep 3
+  if [[ $idx_participant -eq 0 ]]
+  then
+    python participant_fl_training.py \
+    --contract_info_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
+    --participant_id \
+    $idx_participant \
+    --validator_directory_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/validator \
+    --use_fake_weights &
+    sleep 3
+  else
+    python participant_fl_training.py \
+    --contract_info_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/announcement_info.json \
+    --participant_id \
+    $idx_participant \
+    --validator_directory_path \
+    /home/fabsam/Documenti/university/masterDegree/thesis/Decentralized-SmartGrid-ML/data_sample/simple_multiclass_task/validator &
+  fi
 done
